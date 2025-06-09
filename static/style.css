@@ -1,0 +1,618 @@
+/* --------------------- VARIABLES --------------------- */
+:root {
+  --bg-page: #f0f2f5;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --accent: #3498db;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --border-radius: 10px;
+  --transition: 0.3s ease;
+  --font-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ---------------------- GLOBAL ---------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --------- RESET BÁSICO --------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-base);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* -------------------- CONTENEDOR -------------------- */
+.app-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* --------------------- SIDEBAR ---------------------- */
+.sidebar {
+  background-color: var(--bg-sidebar);
+  width: 280px;
+  padding: 1rem 1.5rem;
+  box-shadow: 2px 0 12px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition);
+  overflow-y: auto;
+}
+
+.sidebar h5 {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.sidebar hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 0.5rem 0 1rem;
+}
+
+.search-container {
+  margin-bottom: 1.2rem;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.search-container input:focus {
+  border-color: var(--accent);
+}
+
+.filters {
+  flex-grow: 1;
+}
+
+.filters h6 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.form-check input {
+  margin-right: 0.6rem;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.form-check label {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* -------------------- MAIN CONTENT -------------------- */
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+}
+
+.main-content h2 {
+  margin-bottom: 1.2rem;
+  font-size: 1.6rem;
+  color: var(--text-primary);
+}
+
+/* HEADER en index para botón “Crear” */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.btn-create {
+  background-color: var(--accent);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background-color var(--transition);
+}
+
+.btn-create:hover {
+  background-color: #2980b9;
+}
+
+/* ---------------------- CARDS ----------------------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.4rem;
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px var(--shadow);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px var(--shadow);
+}
+
+.card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.card-body {
+  padding: 1rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  color: var(--text-primary);
+}
+
+.card-disc {
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.discipline-label {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  background-color: var(--accent);
+  color: #ffffff;
+  border-radius: 12px;
+  transition: background-color var(--transition);
+}
+
+.discipline-label:hover {
+  background-color: #2980b9;
+}
+
+.card a.stretched-link {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  text-decoration: none;
+  z-index: 1;
+}
+
+/* ---------------------- DETALLE ---------------------- */
+.project-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.project-sidebar {
+  background-color: var(--bg-sidebar);
+  width: 280px;
+  padding: 1rem 1.5rem;
+  box-shadow: 2px 0 12px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition);
+  overflow-y: auto;
+}
+
+.project-sidebar a {
+  text-decoration: none;
+  color: var(--accent);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.project-sidebar a:hover {
+  text-decoration: underline;
+}
+
+.project-sidebar h5 {
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.project-sidebar p {
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-secondary);
+}
+
+.project-main {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+}
+
+.project-main .cover-image {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  box-shadow: 0 2px 8px var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.project-main h2 {
+  margin-bottom: 0.6rem;
+  font-size: 1.6rem;
+  color: var(--text-primary);
+}
+
+.project-main em {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.project-main p {
+  margin-top: 1rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .project-container {
+    flex-direction: column;
+  }
+  .project-sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.6rem;
+    box-shadow: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .project-sidebar a {
+    margin-right: 1rem;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+  }
+  .project-main {
+    padding: 1rem;
+  }
+  .project-main .cover-image {
+    height: 180px;
+  }
+}
+
+/* ======= PÁGINA CREATE (layout 2 colunas melhorado) ======= */
+
+/* --------- RESET BÁSICO --------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* --------- CONTAINER PRINCIPAL --------- */
+.create-wrapper {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background: #f5f6fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== Sidebar (metadados) ===== */
+.create-sidebar {
+  width: 300px;
+  min-width: 280px;
+  background: #fff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.back-link {
+  font-size: 0.95rem;
+  color: #3498db;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+.back-link:hover {
+  color: #2980b9;
+}
+
+.create-sidebar h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+/* Cada bloco de campo no sidebar */
+.form-field {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+/* Inputs de texto e file ocupam 100% da width do sidebar */
+.form-field input[type="text"],
+.form-field input[type="file"] {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+}
+
+.form-field input[type="text"]:focus,
+.form-field input[type="file"]:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+/* Grupo de radios em linha, mas responsivo */
+.radio-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.radio-box label {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.radio-box input {
+  margin-right: 0.4rem;
+  accent-color: #3498db;
+}
+
+/* Preview de capa */
+#cover-preview {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+/* Botão Publicar ocupando toda a largura do sidebar */
+.btn-publish {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #3498db;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-publish:hover {
+  background-color: #2980b9;
+}
+
+/* ===== Área do Editor ===== */
+
+/* ===== Área do Editor ===== */
+.editor-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 2.5rem;
+  overflow: hidden;
+  /* não precisa mais de width:100%; o flex:1 já faz */
+}
+
+
+
+/* Título destacado */
+#title {
+  font-size: 1.8rem;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  width: 100%;
+  background: transparent;
+  transition: border-color 0.3s ease;
+}
+#title:focus {
+  border-bottom-color: #3498db;
+  outline: none;
+}
+
+/* Quill editor preenche o restante */
+
+#editor {
+  flex: 1;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+  .create-wrapper {
+    flex-direction: column;
+  }
+  .create-sidebar {
+    width: 100%;
+    box-shadow: none;
+    border-bottom: 1px solid #ddd;
+  }
+  .editor-pane {
+    padding: 1rem;
+  }
+  #title {
+    font-size: 1.5rem;
+  }
+  #editor {
+    padding: 0.8rem;
+  }
+}
+
+
+/* Estilos para o conteúdo Quill renderizado */
+.project-content {
+  line-height: 1.6;
+  color: #333;
+}
+
+.project-content h1,
+.project-content h2,
+.project-content h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.project-content p {
+  margin-bottom: 1rem;
+}
+
+.project-content ul,
+.project-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.project-content blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 1rem;
+  color: #666;
+  margin: 1rem 0;
+}
+
+.project-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+}
+
+.project-content a {
+  color: #3498db;
+  text-decoration: underline;
+}
+
+.project-content a:hover {
+  color: #2980b9;
+}
+
+
+/* --------- Cards: botões excluir e editar --------- */
+.card {
+  position: relative;
+  overflow: hidden;
+  /* ... seu estilo existente ... */
+}
+
+/* Botão “×” (delete) no canto superior direito */
+.delete-form {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+.delete-btn {
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  font-size: 1.2rem;
+  color: #c0392b;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.delete-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* --------- Cards: botão editar com SVG --------- */
+.edit-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  z-index: 10;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-decoration: none; /* nada além do ícone */
+}
+
+.edit-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.edit-btn svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
