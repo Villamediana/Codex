@@ -155,6 +155,20 @@ body {
   gap: 1.4rem;
 }
 
+.share-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 1.1rem;
+}
+.share-btn:hover { background: #f1f5f9; }
+
+
 .card {
   background-color: var(--bg-card);
   border-radius: var(--border-radius);
