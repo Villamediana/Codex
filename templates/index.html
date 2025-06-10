@@ -10,37 +10,33 @@
   <div class="app-container">
     <!-- Sidebar de filtros -->
     <aside class="sidebar">
-      <h5>Filtros</h5>
-      <hr />
-      <div class="search-container">
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Buscar proyecto..."
-        />
-      </div>
-      <div class="filters">
-        <h6>Disciplina</h6>
-        <div class="form-check">
-          <input
-            type="checkbox"
-            id="filter-matematica"
-            value="Matemática"
-            checked
-          />
-          <label for="filter-matematica">Matemática</label>
-        </div>
-        <div class="form-check">
-          <input
-            type="checkbox"
-            id="filter-ciencias"
-            value="Ciencias"
-            checked
-          />
-          <label for="filter-ciencias">Ciencias</label>
-        </div>
-      </div>
-    </aside>
+  <h5>Filtros</h5>
+  <hr />
+  <div class="search-container">
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Buscar proyecto..."
+    />
+  </div>
+  <div class="filters">
+    <h6>Disciplina</h6>
+    {% for disc in disciplines %}
+    <div class="form-check">
+      <input
+        type="checkbox"
+        id="filter-{{ disc|lower|replace(' ', '-') }}"
+        value="{{ disc }}"
+        checked
+      />
+      <label for="filter-{{ disc|lower|replace(' ', '-') }}">
+        {{ disc }}
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+</aside>
+
 
     <!-- Main con cards -->
     <section class="main-content">

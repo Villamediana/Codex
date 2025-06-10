@@ -25,8 +25,11 @@ with open(JSON_PATH, encoding="utf-8") as f:
 
 @app.route("/")
 def index():
-    return render_template("index.html", projects=projects)
-
+    # calcula as disciplinas únicas, ordenadas
+    disciplines = sorted({ p["discipline"] for p in projects })
+    return render_template("index.html",
+                           projects=projects,
+                           disciplines=disciplines)
 
 @app.route("/projects/<int:project_id>")
 def project_detail(project_id):
