@@ -34,5 +34,19 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
+function copyLink(url) {
+  navigator.clipboard.writeText(url)
+    .then(() => {
+      // Notificación sencilla; puedes mejorar con un tooltip o toast
+      alert('Enlace copiado al portapapeles:\n' + url);
+    })
+    .catch(err => {
+      console.error('Error al copiar enlace:', err);
+      alert('No se pudo copiar el enlace');
+    });
+}
+
+
   filtrar();
 });
+

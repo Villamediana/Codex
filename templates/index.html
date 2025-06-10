@@ -59,6 +59,14 @@
               onsubmit="return confirm('¿Eliminar proyecto {{ p.name }}?');"
               class="delete-form"
             >
+
+            <button
+      class="share-btn"
+      title="Compartir"
+      onclick="copyLink('{{ url_for('project_detail', project_id=p.id, _external=True) }}')"
+    >
+      📋
+    </button>
               <button type="submit" class="delete-btn">×</button>
             </form>
 
