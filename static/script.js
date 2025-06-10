@@ -1,52 +1,59 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("search-input");
-  const cbMat = document.getElementById("filter-matematica");
-  const cbCien = document.getElementById("filter-ciencias");
   const cards = Array.from(document.querySelectorAll("#cards-container .card"));
+  const checkboxes = Array.from(document.querySelectorAll(".filters input[type='checkbox']"));
 
+  // ───── FUNC: Filtro principal ─────
   function filtrar() {
     const texto = searchInput.value.trim().toLowerCase();
-    const okMath = cbMat.checked;
-    const okCien = cbCien.checked;
+    const disciplinasAtivas = checkboxes
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
 
     cards.forEach(card => {
       const name = card.getAttribute("data-name");
       const disc = card.getAttribute("data-discipline");
       const coincideTexto = name.includes(texto);
-      const coincideDisc =
-        (disc === "Matemática" && okMath) || (disc === "Ciencias" && okCien);
+      const coincideDisc = disciplinasAtivas.includes(disc);
 
       card.style.display = (coincideTexto && coincideDisc) ? "block" : "none";
     });
   }
 
+  // ───── Eventos para busca e filtros ─────
   searchInput.addEventListener("input", filtrar);
-  cbMat.addEventListener("change", filtrar);
-  cbCien.addEventListener("change", filtrar);
+  checkboxes.forEach(cb => cb.addEventListener("change", filtrar));
 
+  // ───── Atalho clicando na tag da disciplina ─────
   document.querySelectorAll(".discipline-label").forEach(label => {
-    label.addEventListener("click", function() {
+    label.addEventListener("click", function () {
       const disciplina = this.textContent.trim();
-      cbMat.checked = (disciplina === "Matemática");
-      cbCien.checked = (disciplina === "Ciencias");
+      checkboxes.forEach(cb => {
+        cb.checked = (cb.value === disciplina);
+      });
       searchInput.value = "";
       filtrar();
     });
   });
 
-function copyLink(url) {
-  navigator.clipboard.writeText(url)
-    .then(() => {
-      // Notificación sencilla; puedes mejorar con un tooltip o toast
-      alert('Enlace copiado al portapapeles:\n' + url);
-    })
-    .catch(err => {
-      console.error('Error al copiar enlace:', err);
-      alert('No se pudo copiar el enlace');
-    });
-}
+  // ───── Notyf para notificação bonita ─────
+  const notyf = new Notyf({
+    duration: 2500,
+    ripple: true,
+    position: { x: 'right', y: 'bottom' }
+  });
 
+  // ───── Função de cópia com notify ─────
+  window.copyLink = function (url) {
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        notyf.success('🔗 Enlace copiado al portapapeles');
+      })
+      .catch(err => {
+        console.error('Error al copiar enlace:', err);
+        notyf.error('❌ No se pudo copiar el enlace');
+      });
+  };
 
-  filtrar();
+  filtrar(); // filtro inicial
 });
-
