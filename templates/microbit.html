@@ -1,80 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ micro.name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
-  <!-- Ajustes de layout + correção do tamanho da imagem -->
   <style>
-    /* --- estrutura geral --- */
-    body { height: 100vh; display: flex; overflow: hidden; }
-
-    /* Sidebar */
-    .project-sidebar {
-      width: 280px;
-      flex-shrink: 0;
-      overflow-y: auto;
+    :root{
+      --accent:#27ae60;
+      --gray:#2c3e50;
+      --border:#e1e4e8;
     }
 
-    /* Área direita (nav + conteúdo) */
-    .content-area { flex: 1; display: flex; flex-direction: column; height: 100%; }
+    /* ---------- Layout base ---------- */
+    body{margin:0;height:100vh;display:flex;overflow:hidden;font-family:system-ui,sans-serif;}
 
-    /* Navegação */
-    .top-nav {
-      width: 100%;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 0.75rem 1.25rem;
-      background: #f8f9fa;
-      border-bottom: 1px solid #e1e4e8;
-      gap: 1.25rem;
-      flex-shrink: 0;
+    /* ---------- Sidebar ---------- */
+    .project-sidebar{
+      width:280px;flex-shrink:0;overflow-y:auto;padding:1rem 1.25rem;
+      border-right:2px solid var(--border);background:#fff;
     }
-    .top-nav .nav-links { display: flex; gap: 1rem; margin-right: 0.75rem; }
-    .top-nav a { text-decoration: none; color: #2c3e50; font-weight: 500; }
-    .top-nav a.active { border-bottom: 2px solid #2c3e50; }
-    .top-nav .btn-create { padding: 0.45rem 0.9rem; font-size: 0.9rem; color: #fff; }
+    .sidebar-meta h5{margin-top:.5rem;}
 
-    /* Conteúdo principal */
-    .project-main { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+    /* ---------- Conteúdo + nav ---------- */
+    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
+    .project-main{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
 
-    /* Responsivo: sidebar vira topo */
-    @media (max-width: 768px) {
-      body { flex-direction: column; }
-      .project-sidebar {
-        width: 100%;
-        border-bottom: 1px solid #e1e4e8;
-        box-shadow: none;
-      }
-      .project-main .cover-image { height: 180px; }
+    .top-nav{display:flex;justify-content:space-between;align-items:center;
+             padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
+    .nav-links{display:flex;gap:1rem;}
+    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
+    .top-nav a.active{border-bottom:2px solid var(--gray);}
+    .btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;font-size:.9rem;text-decoration:none;}
+    .btn-formulario:hover{opacity:.9;}
+
+    .cover-image{width:100%;height:260px;object-fit:contain;border:1px solid var(--border);
+                 border-radius:4px;margin-bottom:1rem;}
+
+    /* ---------- Mobile (≤768px) ---------- */
+    @media (max-width:768px){
+      body{flex-direction:column;}
+
+      /* Sidebar no topo e oculta o meta */
+      .project-sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+      .sidebar-meta{display:none;}
+
+      /* Esconde nav e seta voltar */
+      .top-nav{display:none;}
     }
   </style>
 </head>
 
 <body>
-  <!-- Sidebar detalhes -->
+  <!-- Sidebar -->
   <aside class="project-sidebar">
     <a href="{{ url_for('index') }}">← Volver</a>
-    <h5>Detalles</h5>
-    <hr />
-    <p><strong>Nombre:</strong> {{ micro.name }}</p>
-    <p><strong>Descrição:</strong> {{ micro.short }}</p>
+
+    <!-- bloco de detalhes (desktop apenas) -->
+    <div class="sidebar-meta">
+      <h5>Detalles</h5>
+      <hr />
+      <p><strong>Nombre:</strong> {{ micro.name }}</p>
+      <p><strong>Descripción:</strong> {{ micro.short }}</p>
+    </div>
   </aside>
 
   <!-- Área direita -->
   <div class="content-area">
-    <!-- Navegação -->
     {% include 'nav.html' %}
 
-
-    <!-- Conteúdo do pilar -->
     <section class="project-main">
-      <img class="cover-image"
-           src="{{ url_for('static', filename=micro.image) }}"
+      <img class="cover-image" src="{{ url_for('static', filename=micro.image) }}"
            alt="Imagen de {{ micro.name }}" />
       <h2>{{ micro.name }}</h2>
       <p><em>{{ micro.short }}</em></p>
@@ -85,5 +82,4 @@
     </section>
   </div>
 </body>
-
 </html>

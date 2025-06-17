@@ -1,68 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ project.name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
-  <!-- Ajustes de layout (sidebar fixa + nav + conteúdo) -->
   <style>
-    /* Estrutura geral */
-    body { height: 100vh; display: flex; overflow: hidden; }
-
-    
-    /* Sidebar de detalhes */
-    .project-sidebar {
-      width: 280px;
-      flex-shrink: 0;
-      overflow-y: auto;
+    :root{
+      --accent:#27ae60;
+      --gray:#2c3e50;
+      --border:#e1e4e8;
+      --transition:.25s;
     }
 
-    /* Área à direita (nav + conteúdo) */
-    .content-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
+    /* ---------- Layout base ---------- */
+    body{margin:0;height:100vh;display:flex;overflow:hidden;font-family:system-ui,sans-serif;}
+
+    /* ---------- Sidebar ---------- */
+    .project-sidebar{
+      width:280px;flex-shrink:0;overflow-y:auto;padding:1rem 1.25rem;
+      border-right:2px solid var(--border);background:#fff;
+      position:relative;transition:transform var(--transition);z-index:1100;
     }
+    .close-btn{display:none;border:none;background:none;font-size:1.4rem;color:var(--gray);
+               cursor:pointer;position:absolute;top:.6rem;right:1rem;}
 
-    /* Barra de navegação */
-    .top-nav {
-      width: 100%;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 0.75rem 1.25rem;
-      background: #f8f9fa;
-      border-bottom: 1px solid #e1e4e8;
-      gap: 1.25rem;
-      flex-shrink: 0;
-    }
-    .top-nav .nav-links { display: flex; gap: 1rem; margin-right: 0.75rem; }
-    .top-nav a { text-decoration: none; color: #2c3e50; font-weight: 500; }
-    .top-nav a.active { border-bottom: 2px solid #2c3e50; }
-    .top-nav .btn-create { padding: 0.45rem 0.9rem; font-size: 0.9rem; color: #fff; }
+    /* ---------- Conteúdo + nav ---------- */
+    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
+    .project-main{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
 
-    /* Conteúdo principal */
-    .project-main { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+    /* ---------- Nav ajustes só para ESTA página ---------- */
+    .top-nav{position:relative;display:flex;justify-content:space-between;align-items:center;
+             padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
+    .top-nav .nav-links{display:flex;gap:1rem;}
+    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
+    .top-nav a.active{border-bottom:2px solid var(--gray);}
+    .btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;
+                    font-size:.9rem;text-decoration:none;white-space:nowrap;}
+    .btn-formulario:hover{opacity:.9;}
 
-    /* Responsivo: sidebar vira topo em telas pequenas */
-    @media (max-width: 768px) {
-      body { flex-direction: column; }
-      .project-sidebar {
-        width: 100%;
-        border-bottom: 1px solid #e1e4e8;
-        box-shadow: none;
+    /* seta voltar (invisível no desktop) */
+    .back-btn{display:none;position:absolute;left:1rem;font-size:1.4rem;
+              text-decoration:none;color:var(--gray);}
+
+    /* ---------- Backdrop ---------- */
+    .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;}
+
+    /* ---------- Mobile (≤ 768 px) ---------- */
+    @media (max-width:768px){
+      body{flex-direction:column;}
+
+      /* sidebar deslizante */
+      .project-sidebar{
+        position:fixed;top:0;left:0;height:100%;width:80%;
+        transform:translateX(-100%);box-shadow:2px 0 6px rgb(0 0 0 /.25);
       }
+      .project-sidebar.open{transform:translateX(0);}
+      .close-btn{display:block;}
+
+      .project-main{padding:1rem;}
+
+      /* NAV: esconde menu, cria seta e esconde criar */
+      .top-nav .nav-links,
+      .top-nav .btn-formulario,
+      .top-nav .btn-create,
+      .menu-toggle{display:none!important;}
+      .back-btn{display:block;}
     }
   </style>
 </head>
 
 <body>
-  <!-- Sidebar de detalhes -->
-  <aside class="project-sidebar">
+  <!-- Backdrop -->
+  <div id="backdrop" class="backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="project-sidebar">
+    <button class="close-btn" onclick="toggleSidebar()">×</button>
+
     <a href="{{ url_for('index') }}">← Volver</a>
     <h5>Detalles</h5>
     <hr />
@@ -70,18 +86,18 @@
     <p><strong>Disciplina:</strong> {{ project.discipline }}</p>
   </aside>
 
-  <!-- Área direita: navegação + conteúdo -->
+  <!-- Área direita -->
   <div class="content-area">
-
-    <!-- Navegação -->
     {% include 'nav.html' %}
 
+    <!-- Seta voltar sobre o nav (visível só no mobile) -->
+    <a href="{{ url_for('index') }}" class="back-btn">←</a>
 
-    <!-- Conteúdo do projeto -->
     <section class="project-main">
       <img class="cover-image"
            src="{{ url_for('static', filename=project.image) }}"
-           alt="Imagen de {{ project.name }}" />
+           alt="Imagen de {{ project.name }}"
+           style="max-width:100%;border:1px solid var(--border);" />
       <h2>{{ project.name }}</h2>
       <p><em>Disciplina: {{ project.discipline }}</em></p>
       <hr />
@@ -90,6 +106,15 @@
       </div>
     </section>
   </div>
+
+  <script>
+    function toggleSidebar(){
+      const sidebar  = document.getElementById('sidebar');
+      const backdrop = document.getElementById('backdrop');
+      sidebar.classList.toggle('open');
+      backdrop.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+    }
+  </script>
 </body>
 
 </html>

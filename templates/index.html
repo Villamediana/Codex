@@ -1,122 +1,195 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projetos</title>
 
-  <!-- Estilos principais -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-
-  <!-- Ajustes de layout: sidebar fixo à esquerda; nav + conteúdo à direita -->
-  <style>
-    /* ----- Estrutura geral ----- */
-    body{height:100vh;display:flex;overflow:hidden;}      /* linha: sidebar | conteúdo */
-
-    /* Sidebar permanece igual (ocupa 100 % da altura) */
-    .sidebar{width:280px;flex-shrink:0;overflow-y:auto;}
-
-    /* Área à direita (nav + conteúdo) */
-    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
-
-    /* ----- Barra de navegação dentro da content-area ----- */
-    .top-nav{
-      width:100%;
-      display:flex;
-      justify-content:flex-end;
-      align-items:center;
-      padding:0.75rem 1.25rem;
-      background:transparent;
-      border-bottom:2px solid #e1e4e8;
-      gap:1.25rem;
-      flex-shrink:0;
-    }
-    .top-nav .nav-links{display:flex;gap:1rem;margin-right:0.75rem;}
-    .top-nav a{text-decoration:none;color:#2c3e50;font-weight:500;}
-    .top-nav a.active{border-bottom:2px solid #2c3e50;}
-    .top-nav .btn-create{padding:0.45rem 0.9rem;font-size:0.9rem;color:#fff;}
-
-    /* ----- Conteúdo principal ----- */
-    .main-content{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
-
-    /* Responsivo: sidebar vira topo em telas pequenas */
-    @media (max-width:768px){
-      body{flex-direction:column;}
-      .sidebar{width:100%;border-bottom:1px solid #e1e4e8;box-shadow:none;}
-    }
-    
-  </style>
-
-  <!-- Notyf (toast) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+  <style>
+    :root{
+      --accent:#27ae60;
+      --gray:#2c3e50;
+      --border:#e1e4e8;
+      --transition:.25s;
+    }
+
+    /* ---------- Layout base ---------- */
+    body{
+      margin:0;
+      min-height:100vh;              /* permite crescer no mobile */
+      display:flex;
+      overflow-x:hidden;             /* só bloqueia scroll lateral */
+      font-family:system-ui,sans-serif;
+    }
+    .sidebar{
+      width:280px;
+      flex-shrink:0;
+      background:#fff;
+      overflow-y:auto;
+      transition:transform var(--transition);
+      z-index:1100;
+      position:relative;
+    }
+    .content-area{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      min-height:0;                 /* evita cortar grid */
+    }
+
+    /* ---------- Navegação superior ---------- */
+    .top-nav{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
+    .top-nav .nav-links{display:flex;gap:1rem;}
+    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
+    .top-nav a.active{border-bottom:2px solid var(--gray);}
+    .btn-create,.btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;font-size:.9rem;text-decoration:none;white-space:nowrap;}
+    .btn-create:hover,.btn-formulario:hover{opacity:.9;}
+
+    /* ---------- Conteúdo ---------- */
+    .main-content{
+      flex:1 1 auto;
+      overflow-y:auto;              /* rolagem vertical */
+      padding:1.5rem 2rem;
+    }
+    .card-grid{
+      display:grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap:1.25rem;
+      max-width:1400px;             /* +largura, some cutoff */
+      margin:0 auto;
+      justify-items:center;
+    }
+    .card{
+      position:relative;
+      border:1px solid var(--border);
+      border-radius:8px;
+      overflow:hidden;
+      box-shadow:0 1px 3px rgba(0,0,0,.07);
+      width:100%;
+      max-width:320px;             /* evita estourar em telas MUITO largas */
+    }
+    .card img{width:100%;height:160px;object-fit:cover;}
+    .card-body{padding:1rem;}
+    .card-title{margin:.25rem 0;font-size:1.05rem;color:var(--gray);}
+    .discipline-label{font-size:.85rem;color:#555;}
+
+    /* Botões editar/excluir */
+    .edit-btn,.delete-btn{position:absolute;top:8px;width:26px;height:26px;border:none;background:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+    .edit-btn{right:40px;}
+    .delete-btn{right:8px;font-size:18px;line-height:1;color:#e74c3c;}
+    .delete-btn:hover{background:#fef0ef;}
+
+    /* ---------- Sidebar mobile ---------- */
+    .menu-toggle,.close-btn{
+      border:none;background:none;font-size:1.4rem;color:var(--gray);cursor:pointer;
+    }
+    .menu-toggle{display:none;}
+    .close-btn{display:none;position:absolute;top:.7rem;right:1rem;}
+
+    /* Links extras (mobile) */
+    .mobile-nav{display:none;flex-direction:column;gap:.75rem;padding:0 1.25rem 1.5rem;}
+    .mobile-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
+
+    /* ---------- Backdrop ---------- */
+    .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1000;}
+
+    /* ---------- ≤ 768 px ---------- */
+    @media (max-width:768px){
+      body{
+        flex-direction:column;
+        overflow-y:auto;            /* habilita scroll geral */
+      }
+      .sidebar{
+        position:fixed;
+        top:0;left:0;
+        height:100%;
+        width:80%;
+        transform:translateX(-100%);
+        box-shadow:2px 0 6px rgba(0,0,0,.2);
+      }
+      .sidebar.open{transform:translateX(0);}
+      .content-area{min-height:100vh;}
+      .top-nav{border-bottom:none;padding:.6rem 1rem;}
+      .top-nav .nav-links,.top-nav .btn-formulario{display:none;}
+      .menu-toggle{display:block;}
+      .close-btn{display:block;}
+      .mobile-nav{display:flex;}
+    }
+
+    @media (min-width: 768px) {
+  .card-grid {
+    /* força no máximo 3 colunas iguais */
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+  </style>
 </head>
 
 <body>
 
-  <!-- Sidebar filtros (fixo à esquerda) -->
-  <aside class="sidebar">
-    <h5>Filtros</h5>
+  <!-- Backdrop -->
+  <div id="backdrop" class="backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <button class="close-btn" onclick="toggleSidebar()">×</button>
+
+    <h5 style="padding:1rem 1.25rem 0;">Filtros</h5>
     <hr />
-    <div class="search-container">
-      <input type="text" id="search-input" placeholder="Buscar projeto..." />
+    <div style="padding:0 1.25rem 1rem;">
+      <input type="text" id="search-input" placeholder="Buscar projeto..." style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;" />
     </div>
 
-    <div class="filters">
+    <div class="filters" style="padding:0 1.25rem 1.5rem;">
       <h6>Disciplina</h6>
       {% for disc in disciplines %}
       <div class="form-check">
-        <input type="checkbox"
-               id="filter-{{ disc|lower|replace(' ', '-') }}"
-               value="{{ disc }}"
-               checked />
+        <input type="checkbox" id="filter-{{ disc|lower|replace(' ', '-') }}" value="{{ disc }}" checked />
         <label for="filter-{{ disc|lower|replace(' ', '-') }}">{{ disc }}</label>
       </div>
       {% endfor %}
     </div>
+
+    <nav class="mobile-nav">
+      <a href="{{ url_for('index') }}">Projetos</a>
+      <a href="{{ url_for('pilares_view') }}">Pilares Computacionais</a>
+      <a href="{{ url_for('microbit_view') }}">Sobre micro:bit</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header" target="_blank">Formulário</a>
+    </nav>
   </aside>
 
-  <!-- Área direita: nav + cards -->
+  <!-- Área principal -->
   <div class="content-area">
 
-    <!-- Navegação -->
     {% include 'nav.html' %}
 
-
-    <!-- Conteúdo principal -->
     <section class="main-content">
-      <div class="header">
-        <h2>Lista de Projetos</h2>
-      </div>
+      <h2>Lista de Projetos</h2>
 
       <div id="cards-container" class="card-grid">
         {% for p in projects %}
         <div class="card" data-discipline="{{ p.discipline }}" data-name="{{ p.name | lower }}">
-
-          <!-- Excluir -->
-          <form method="POST"
-                action="{{ url_for('delete_project', project_id=p.id) }}"
+          <form method="POST" action="{{ url_for('delete_project', project_id=p.id) }}"
                 onsubmit="return confirm('Deseja excluir o projeto {{ p.name }}?');"
                 class="delete-form">
             <button type="submit" class="delete-btn" title="Excluir">×</button>
           </form>
 
-          <!-- Editar -->
           <a href="{{ url_for('edit_project', project_id=p.id) }}" class="edit-btn" title="Editar">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#2c3e50"/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#555"/>
             </svg>
           </a>
 
-          <!-- Imagem -->
           <img src="{{ url_for('static', filename=p.image) }}" alt="Imagem de {{ p.name }}" />
 
           <div class="card-body">
             <h5 class="card-title">{{ p.name }}</h5>
-            <p class="card-disc">
-              <span class="discipline-label">{{ p.discipline }}</span>
-            </p>
+            <p><span class="discipline-label">{{ p.discipline }}</span></p>
             <a href="{{ url_for('project_detail', project_id=p.id) }}" class="stretched-link"></a>
           </div>
         </div>
@@ -125,8 +198,15 @@
     </section>
   </div>
 
-  <!-- JS principal -->
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    function toggleSidebar(){
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('backdrop');
+      sb.classList.toggle('open');
+      bd.style.display = sb.classList.contains('open') ? 'block' : 'none';
+    }
+  </script>
 </body>
-
 </html>
