@@ -9,49 +9,98 @@
   <!-- Estilos principais -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
+  <!-- Ajustes de layout: sidebar fixo à esquerda; nav + conteúdo à direita -->
+  <style>
+    /* ----- Estrutura geral ----- */
+    body{height:100vh;display:flex;overflow:hidden;}      /* linha: sidebar | conteúdo */
+
+    /* Sidebar permanece igual (ocupa 100 % da altura) */
+    .sidebar{width:280px;flex-shrink:0;overflow-y:auto;}
+
+    /* Área à direita (nav + conteúdo) */
+    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
+
+    /* ----- Barra de navegação dentro da content-area ----- */
+    .top-nav{
+      width:100%;
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      padding:0.75rem 1.25rem;
+      background:transparent;
+      border-bottom:2px solid #e1e4e8;
+      gap:1.25rem;
+      flex-shrink:0;
+    }
+    .top-nav .nav-links{display:flex;gap:1rem;margin-right:0.75rem;}
+    .top-nav a{text-decoration:none;color:#2c3e50;font-weight:500;}
+    .top-nav a.active{border-bottom:2px solid #2c3e50;}
+    .top-nav .btn-create{padding:0.45rem 0.9rem;font-size:0.9rem;color:#fff;}
+
+    /* ----- Conteúdo principal ----- */
+    .main-content{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
+
+    /* Responsivo: sidebar vira topo em telas pequenas */
+    @media (max-width:768px){
+      body{flex-direction:column;}
+      .sidebar{width:100%;border-bottom:1px solid #e1e4e8;box-shadow:none;}
+    }
+    
+  </style>
+
   <!-- Notyf (toast) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 </head>
 
 <body>
-  <div class="app-container">
-    <!-- ───── Barra lateral de filtros ───────────────────────── -->
-    <aside class="sidebar">
-      <h5>Filtros</h5>
-      <hr />
-      <div class="search-container">
-        <input type="text" id="search-input" placeholder="Buscar projeto..." />
-      </div>
 
-      <div class="filters">
-        <h6>Disciplina</h6>
-        {% for disc in disciplines %}
-        <div class="form-check">
-          <input type="checkbox"
-                 id="filter-{{ disc|lower|replace(' ', '-') }}"
-                 value="{{ disc }}"
-                 checked />
-          <label for="filter-{{ disc|lower|replace(' ', '-') }}">{{ disc }}</label>
-        </div>
-        {% endfor %}
-      </div>
-    </aside>
+  <!-- Sidebar filtros (fixo à esquerda) -->
+  <aside class="sidebar">
+    <h5>Filtros</h5>
+    <hr />
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Buscar projeto..." />
+    </div>
 
-    <!-- ───── Área principal com cards ───────────────────────── -->
+    <div class="filters">
+      <h6>Disciplina</h6>
+      {% for disc in disciplines %}
+      <div class="form-check">
+        <input type="checkbox"
+               id="filter-{{ disc|lower|replace(' ', '-') }}"
+               value="{{ disc }}"
+               checked />
+        <label for="filter-{{ disc|lower|replace(' ', '-') }}">{{ disc }}</label>
+      </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- Área direita: nav + cards -->
+  <div class="content-area">
+
+    <!-- Navegação -->
+    <nav class="top-nav">
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Projetos</a>
+        <a href="{{ url_for('pilares_view') }}" class="{% if request.endpoint == 'pilares_view' %}active{% endif %}">Pilares Computacionais</a>
+        <a href="{{ url_for('microbit_view') }}" class="{% if request.endpoint == 'microbit_view' %}active{% endif %}">Sobre micro:bit</a>
+      </div>
+      <a href="{{ url_for('create') }}" class="btn-create">Criar Projeto</a>
+    </nav>
+
+    <!-- Conteúdo principal -->
     <section class="main-content">
       <div class="header">
         <h2>Lista de Projetos</h2>
-        <a href="{{ url_for('create') }}" class="btn-create">Criar Projeto</a>
       </div>
 
       <div id="cards-container" class="card-grid">
         {% for p in projects %}
-        <div class="card"
-             data-discipline="{{ p.discipline }}"
-             data-name="{{ p.name | lower }}">
+        <div class="card" data-discipline="{{ p.discipline }}" data-name="{{ p.name | lower }}">
 
-          <!-- Botão excluir (canto superior-direito) -->
+          <!-- Excluir -->
           <form method="POST"
                 action="{{ url_for('delete_project', project_id=p.id) }}"
                 onsubmit="return confirm('Deseja excluir o projeto {{ p.name }}?');"
@@ -59,26 +108,22 @@
             <button type="submit" class="delete-btn" title="Excluir">×</button>
           </form>
 
-          <!-- Botão editar (ícone lápis) -->
-          <a href="{{ url_for('edit_project', project_id=p.id) }}"
-             class="edit-btn"
-             title="Editar">
+          <!-- Editar -->
+          <a href="{{ url_for('edit_project', project_id=p.id) }}" class="edit-btn" title="Editar">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#2c3e50"/>
             </svg>
           </a>
 
-          <!-- Imagem e corpo do card -->
-          <img src="{{ url_for('static', filename=p.image) }}"
-               alt="Imagem de {{ p.name }}" />
+          <!-- Imagem -->
+          <img src="{{ url_for('static', filename=p.image) }}" alt="Imagem de {{ p.name }}" />
 
           <div class="card-body">
             <h5 class="card-title">{{ p.name }}</h5>
             <p class="card-disc">
               <span class="discipline-label">{{ p.discipline }}</span>
             </p>
-            <a href="{{ url_for('project_detail', project_id=p.id) }}"
-               class="stretched-link"></a>
+            <a href="{{ url_for('project_detail', project_id=p.id) }}" class="stretched-link"></a>
           </div>
         </div>
         {% endfor %}

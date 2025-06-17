@@ -147,5 +147,25 @@ def edit_project(project_id):
     )
 
 
+# ─── Carga inicial de pilares.json ───────────────────────────────────────
+PILARES_PATH = os.path.join(BASE_DIR, "pilares.json")
+with open(PILARES_PATH, encoding="utf-8") as f:
+    pilares = json.load(f)          # un único dict
+
+@app.route("/pilares")
+def pilares_view():
+    return render_template("pilares.html", pilar=pilares)
+
+
+# ─── Carga inicial de pilares.json ───────────────────────────────────────
+MICROBIT_PATH = os.path.join(BASE_DIR, "microbit.json")
+with open(MICROBIT_PATH, encoding="utf-8") as f:
+    microbit = json.load(f)          # un único dict
+
+@app.route("/microbit")
+def microbit_view():
+    return render_template("microbit.html", micro=microbit)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
