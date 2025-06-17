@@ -81,14 +81,8 @@
   <div class="content-area">
 
     <!-- Navegação -->
-    <nav class="top-nav">
-      <div class="nav-links">
-        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Projetos</a>
-        <a href="{{ url_for('pilares_view') }}" class="{% if request.endpoint == 'pilares_view' %}active{% endif %}">Pilares Computacionais</a>
-        <a href="{{ url_for('microbit_view') }}" class="{% if request.endpoint == 'microbit_view' %}active{% endif %}">Sobre micro:bit</a>
-      </div>
-      <a href="{{ url_for('create') }}" class="btn-create">Criar Projeto</a>
-    </nav>
+    {% include 'nav.html' %}
+
 
     <!-- Conteúdo principal -->
     <section class="main-content">
