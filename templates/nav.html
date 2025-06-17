@@ -7,6 +7,7 @@
     <a href="{{ url_for('index') }}"         class="{% if request.endpoint == 'index' %}active{% endif %}">Projetos</a>
     <a href="{{ url_for('pilares_view') }}"  class="{% if request.endpoint == 'pilares_view' %}active{% endif %}">Pensamento Computacional</a>
     <a href="{{ url_for('microbit_view') }}" class="{% if request.endpoint == 'microbit_view' %}active{% endif %}">Sobre micro:bit</a>
+    <a href="{{ url_for('habilidades_view') }}" class="{% if request.endpoint == 'habilidades_view' %}active{% endif %}">Habilidades</a>
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header" class="btn-formulario">Formulario</a>
     <a href="{{ url_for('create') }}" class="btn-create">+ Novo</a>
   </div>

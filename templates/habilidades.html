@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ hab.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+  <style>
+    :root{
+      --accent:#27ae60;
+      --gray:#2c3e50;
+      --border:#e1e4e8;
+    }
+
+    /* ---------- Layout base ---------- */
+    body{margin:0;height:100vh;display:flex;overflow:hidden;font-family:system-ui,sans-serif;}
+
+    /* ---------- Sidebar ---------- */
+    .project-sidebar{
+      width:280px;flex-shrink:0;overflow-y:auto;padding:1rem 1.25rem;
+      border-right:2px solid var(--border);background:#fff;
+    }
+    .sidebar-meta h5{margin-top:.5rem;}
+
+    /* ---------- Conteúdo + nav ---------- */
+    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
+    .project-main{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
+
+    .top-nav{display:flex;justify-content:space-between;align-items:center;
+             padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
+    .nav-links{display:flex;gap:1rem;}
+    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
+    .top-nav a.active{border-bottom:2px solid var(--gray);}
+    .btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;font-size:.9rem;text-decoration:none;}
+    .btn-formulario:hover{opacity:.9;}
+
+    .cover-image{width:100%;height:260px;object-fit:contain;border:1px solid var(--border);
+                 border-radius:4px;margin-bottom:1rem;}
+
+    /* ---------- Mobile (≤768px) ---------- */
+    @media (max-width:768px){
+      body{flex-direction:column;}
+
+      /* Sidebar no topo e oculta o meta */
+      .project-sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+      .sidebar-meta{display:none;}
+
+      /* Esconde nav e seta voltar */
+      .top-nav{display:none;}
+    }
+
+    
+/* ===== BOTÃO MENU ===== */
+.menu-toggle{
+  display:none;                /* desktop: some  */
+  background:none;
+  border:0;
+  font-size:1.6rem;
+  cursor:pointer;
+}
+
+/* ---------- Bloco FAQ ---------- */
+details{
+  border:1px solid var(--border);
+  border-radius:6px;
+  margin:0.6rem 0;
+  background:#fafafa;
+  transition:box-shadow .25s;
+}
+details[open]{
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
+/* tira o triângulo padrão */
+summary{
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.75rem 1rem;
+  font-weight:600;
+  color:var(--gray);
+  position:relative;
+}
+summary::-webkit-details-marker{display:none;}
+
+summary::after{             /* ícone de seta */
+  content:'▸';
+  font-size:1rem;
+  transform:rotate(0deg);
+  transition:transform .25s;
+  margin-left:auto;
+  color:var(--accent);
+}
+details[open] summary::after{
+  transform:rotate(90deg);
+}
+
+/* lista interna */
+details ul{
+  margin:0;
+  padding:0 1.5rem 1rem;
+}
+details li{
+  margin:.35rem 0;
+  line-height:1.4;
+}
+
+
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <aside class="project-sidebar">
+    <a href="{{ url_for('index') }}">← Volver</a>
+
+    <!-- bloco de detalhes (desktop apenas) -->
+    <div class="sidebar-meta">
+      <h5>Detalhes</h5>
+      <hr />
+      <p><strong>Nome:</strong> {{ hab.name }}</p>
+      <p><strong>Descrição:</strong> {{ hab.short }}</p>
+    </div>
+  </aside>
+
+  <!-- Área direita -->
+  <div class="content-area">
+    {% include 'nav.html' %}
+
+    <section class="project-main">
+      <h2>{{ hab.name }}</h2>
+      <p><em>{{ hab.short }}</em></p>
+      <hr />
+      <div class="project-content">
+        {{ hab.description|safe }}
+      </div>
+    </section>
+  </div>
+</body>
+</html>

@@ -167,5 +167,16 @@ def microbit_view():
     return render_template("microbit.html", micro=microbit)
 
 
+# ─── Carga inicial de pilares.json ───────────────────────────────────────
+HABILIDADES = os.path.join(BASE_DIR, "habilidades.json")
+with open(HABILIDADES, encoding="utf-8") as f:
+    habilidades = json.load(f)          # un único dict
+
+@app.route("/habilidades")
+def habilidades_view():
+    return render_template("habilidades.html", hab=habilidades)
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
