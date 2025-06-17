@@ -148,6 +148,21 @@ body {
   background-color: #2980b9;
 }
 
+.btn-formulario {
+  background-color: #6c9865;     /* azul escuro suave */
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-formulario:hover {
+  background-color: #3e593a;     /* ainda mais escuro no hover */
+}
+
+
 /* ---------------------- CARDS ----------------------- */
 .card-grid {
   display: grid;
