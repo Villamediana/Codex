@@ -136,7 +136,12 @@
 
     <!-- ==== ÁREA DO EDITOR ==== -->
     <section class="editor-pane">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <!-- Basta acrescentar type="button" -->
+<button type="button" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- idem para o X de fechar -->
+<button type="button" class="close-btn" onclick="toggleSidebar()">×</button>
+
 
       <input type="text" id="title" name="title" placeholder="Título do projeto" required
              {% if edit_mode %}value="{{ project.name }}"{% endif %} />
