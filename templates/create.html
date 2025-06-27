@@ -37,6 +37,10 @@
 
     /* ===== mobile ===== */
     .menu-toggle{display:none}
+      .close-btn {
+    display: none;
+  }
+
     @media(max-width:768px){
       .create-sidebar{position:fixed;inset:0 0 auto 0;height:100%;transform:translateX(-100%);
                       box-shadow:2px 0 6px rgb(0 0 0 /.2);}
@@ -44,20 +48,12 @@
       .editor-pane{padding:1rem;}
       .menu-toggle{display:block;border:none;background:none;font-size:1.5rem;color:var(--gray);
                    cursor:pointer;margin-bottom:1rem;}
-      .close-btn{display:none;border:none;background:none;font-size:1.4rem;color:var(--gray);
+      .close-btn{display:block;border:none;background:none;font-size:1.4rem;color:var(--gray);
                  cursor:pointer;position:absolute;top:.7rem;right:1rem;}
-
-
-/* depois, dentro do seu @media (max-width:768px), deixe como está: */
-@media(max-width:768px){
-  .close-btn {
-    display: block;
-  }
-  /* ... resto ... */
 }
       .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;}
-      .backdrop.show{display:block;}
-    }
+      .backdrop.show{display:block;
+          }
   </style>
 </head>
 <body>
