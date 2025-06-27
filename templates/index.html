@@ -209,5 +209,55 @@
       bd.style.display = sb.classList.contains('open') ? 'block' : 'none';
     }
   </script>
+
+
+<script>
+  // Verifica se a liberação está válida (1 dia)
+  function liberacaoValida() {
+    var ts = localStorage.getItem('liberado_ate');
+    if (!ts) return false;
+    return Date.now() < parseInt(ts);
+  }
+
+  // Oculta todos os botões de ação (editar, apagar, novo)
+  function ocultarBotoes() {
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = "none");
+    document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "none");
+    var btnNovo = document.getElementById("btn-create");
+    if (btnNovo) btnNovo.style.display = "none";
+    console.log("Botões ocultados!");
+  }
+
+  // Mostra todos os botões de ação (editar, apagar, novo)
+  function mostrarBotoes() {
+    document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = "");
+    document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "");
+    var btnNovo = document.getElementById("btn-create");
+    if (btnNovo) btnNovo.style.display = "";
+    console.log("Botões Editar, Apagar e +Novo liberados!");
+  }
+
+  // Executa ao carregar a página: verifica se está liberado
+  window.addEventListener('DOMContentLoaded', function() {
+    if (liberacaoValida()) {
+      mostrarBotoes();
+    } else {
+      ocultarBotoes();
+    }
+  });
+
+  // Função global para liberar por 1 dia
+  window.liberar = function() {
+    localStorage.setItem('liberado_ate', Date.now() + 24*60*60*1000);
+    mostrarBotoes();
+  };
+
+  // Função global para ocultar e remover permissão
+  window.ocultar = function() {
+    localStorage.removeItem('liberado_ate');
+    ocultarBotoes();
+  };
+</script>
+
 </body>
 </html>
