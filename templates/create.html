@@ -3,199 +3,213 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  {% if edit_mode %}
-    <title>Editar: {{ project.name }}</title>
-  {% else %}
-    <title>Novo Projeto</title>
-  {% endif %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <title>{% if edit_mode %}Editar Projeto{% else %}Novo Projeto{% endif %}</title>
 
-  <!-- Quill CSS -->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css"/>
 
   <style>
-    :root{
-      --accent:#27ae60;
-      --gray:#2c3e50;
-      --border:#e1e4e8;
-      --transition:.25s;
-    }
-
-    /* ---------- Layout base ---------- */
+    :root{--accent:#27ae60;--gray:#2c3e50;--border:#e1e4e8;--transition:.25s;}
     body{margin:0;height:100vh;font-family:system-ui,sans-serif;}
 
-    /* Wrapper: sidebar + editor */
+    /* ===== layout ===== */
     .create-wrapper{display:flex;height:100%;}
-
-    /* ---- Sidebar ---- */
     .create-sidebar{
-      width:280px;flex-shrink:0;background:#fff;overflow-y:auto;
-      border-right:2px solid var(--border);
-      padding:1rem 1.25rem;position:relative;
-      transition:transform var(--transition);z-index:1100;
+      width:280px;flex-shrink:0;padding:1rem 1.25rem;overflow-y:auto;
+      border-right:2px solid var(--border);background:#fff;z-index:1100;
+      transition:transform var(--transition);
     }
-    .back-link{display:inline-block;margin-bottom:1rem;color:var(--gray);text-decoration:none;}
+    .editor-pane{flex:1;display:flex;flex-direction:column;padding:1.5rem;overflow-y:auto;}
 
+    /* ===== form & inputs ===== */
     .form-field{margin:1rem 0;}
-    .form-field label{display:block;margin-bottom:.35rem;font-weight:500;color:var(--gray);}
-    .radio-box label{display:block;margin-bottom:.25rem;}
-
-    .btn-publish{
-      width:100%;background:var(--accent);color:#fff;border:none;border-radius:6px;
-      padding:.6rem 0;font-size:1rem;cursor:pointer;margin-top:1.5rem;
+    .form-field label{display:block;margin-bottom:.4rem;font-weight:600;color:var(--gray);}
+    select,input[type=file]{
+      width:100%;padding:.5rem .6rem;font-size:.95rem;border:1px solid var(--border);
+      border-radius:6px;background:#fff;color:var(--gray);
     }
+    #habSelect{text-align-last:center;}      /* código centralizado */
+    #habSelect option{text-align:center;}
+
+    .btn-publish{width:100%;margin-top:1.5rem;padding:.6rem 0;font-size:1rem;
+                 border:none;border-radius:6px;background:var(--accent);color:#fff;cursor:pointer;}
     .btn-publish:hover{opacity:.9;}
 
-    /* ---- Editor ---- */
-    .editor-pane{flex:1;display:flex;flex-direction:column;padding:1.5rem;overflow-y:auto;}
-    #title{
-      font-size:1.6rem;margin-bottom:1rem;border:none;border-bottom:2px solid var(--border);
-      outline:none;width:100%;padding:.4rem 0;color:var(--gray);
-    }
-    #editor{flex:1;min-height:350px;}
-
-    /* ---- Botões de toggle ---- */
-    .menu-toggle{display:none;border:none;background:none;font-size:1.5rem;color:var(--gray);cursor:pointer;margin-bottom:1rem;}
-    .close-btn {display:none;border:none;background:none;font-size:1.4rem;color:var(--gray);cursor:pointer;position:absolute;top:.7rem;right:1rem;}
-
-    /* ---- Backdrop ---- */
-    .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1000;}
-
-    /* ---------- Mobile (≤ 768 px) ---------- */
-    @media (max-width:768px){
-      .create-wrapper{height:auto;}
-      .create-sidebar{
-        position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);
-        box-shadow:2px 0 6px rgb(0 0 0 /.2);
-      }
+    /* ===== mobile ===== */
+    .menu-toggle{display:none}
+    @media(max-width:768px){
+      .create-sidebar{position:fixed;inset:0 0 auto 0;height:100%;transform:translateX(-100%);
+                      box-shadow:2px 0 6px rgb(0 0 0 /.2);}
       .create-sidebar.open{transform:translateX(0);}
       .editor-pane{padding:1rem;}
-      .menu-toggle{
-    display:block;
-    align-self:flex-start;  /* ⬅️ força alinhar à esquerda */
-    margin-left:0;          /* garante zero offset */
-  }
-      .close-btn {display:block;}    /* mostra botão X */
+      .menu-toggle{display:block;border:none;background:none;font-size:1.5rem;color:var(--gray);
+                   cursor:pointer;margin-bottom:1rem;}
+      .close-btn{display:block;border:none;background:none;font-size:1.4rem;color:var(--gray);
+                 cursor:pointer;position:absolute;top:.7rem;right:1rem;}
+      .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;}
+      .backdrop.show{display:block;}
     }
   </style>
 </head>
 <body>
 
-  <!-- Backdrop p/ fechar sidebar em mobile -->
-  <div id="backdrop" class="backdrop" onclick="toggleSidebar()"></div>
+<div id="backdrop" class="backdrop" onclick="toggleSidebar()"></div>
 
-  <form
-    class="create-wrapper"
-    id="create-form"
-    method="POST"
-    {% if edit_mode %}
-      action="{{ url_for('edit_project', project_id=project.id) }}"
-    {% else %}
-      action="{{ url_for('create') }}"
-    {% endif %}
-    enctype="multipart/form-data"
-  >
-    <!-- ==== PAINEL LATERAL ==== -->
-    <aside class="create-sidebar" id="sidebar">
-      <button class="close-btn" onclick="toggleSidebar()">×</button>
+<form id="create-form"
+      class="create-wrapper"
+      action="{% if edit_mode %}{{ url_for('edit_project', project_id=project.id) }}{% else %}{{ url_for('create') }}{% endif %}"
+      method="POST"
+      enctype="multipart/form-data">
 
-      <a href="{{ url_for('index') }}" class="back-link">← voltar</a>
-      <h3>{% if edit_mode %}Editar Projeto{% else %}Novo Projeto{% endif %}</h3>
+  <!-- ===== sidebar ===== -->
+  <aside class="create-sidebar" id="sidebar">
+    <button class="close-btn" type="button" onclick="toggleSidebar()">×</button>
 
-      <!-- Disciplina -->
-      <div class="form-field">
-        <label>Escolha uma disciplina</label>
-        <div class="radio-box">
-          {% for d in disciplines %}
-            <label>
-              <input type="radio" name="discipline" value="{{ d }}"
-                     {% if edit_mode and project.discipline == d %}checked{% endif %}>
-              {{ d }}
-            </label>
-          {% endfor %}
-        </div>
-        <input type="text" id="new_discipline" name="new_discipline"
-               placeholder="ou digite nova disciplina">
-      </div>
+    <h3>{% if edit_mode %}Editar Projeto{% else %}Novo Projeto{% endif %}</h3>
 
-      <!-- Upload de capa -->
-      <div class="form-field">
-        <label for="cover_image">Imagem de capa</label>
-        <input type="file" id="cover_image" name="cover_image" accept="image/*" />
-        <img id="cover-preview"
-             {% if edit_mode %}
-               src="{{ url_for('static', filename=project.image) }}"
-               style="display:block;"
-             {% endif %} alt="preview da capa" />
-      </div>
+    <!-- filtros -->
+    <div class="form-field">
+      <label for="discSelect">Disciplina</label>
+      <select id="discSelect" name="discipline" required>
+        <option value="" hidden>Selecione…</option>
+      </select>
+    </div>
 
-      <button type="submit" class="btn-publish">
-        {% if edit_mode %}Salvar Alterações{% else %}Publicar Projeto{% endif %}
-      </button>
-    </aside>
+    <div class="form-field">
+      <label for="uniSelect">Unidade temática</label>
+      <select id="uniSelect" name="unit" required disabled>
+        <option value="" hidden>—</option>
+      </select>
+    </div>
 
-    <!-- ==== ÁREA DO EDITOR ==== -->
-    <section class="editor-pane">
-      <!-- Basta acrescentar type="button" -->
-<button type="button" class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="form-field">
+      <label for="habSelect">Habilidade</label>
+      <select id="habSelect" name="ability" required disabled>
+        <option value="" hidden>—</option>
+      </select>
+    </div>
 
-<!-- idem para o X de fechar -->
-<button type="button" class="close-btn" onclick="toggleSidebar()">×</button>
+    <!-- capa -->
+    <div class="form-field">
+      <label for="cover_image">Imagem de capa</label>
+      <input type="file" id="cover_image" name="cover_image" accept="image/*">
+      <img id="cover-preview"
+           {% if edit_mode %}src="{{ url_for('static', filename=project.image) }}"{% endif %}
+           style="{% if edit_mode %}display:block;max-width:100%;margin-top:.6rem;{% else %}display:none;{% endif %}">
+    </div>
 
+    <button class="btn-publish">{% if edit_mode %}Salvar Alterações{% else %}Publicar Projeto{% endif %}</button>
+  </aside>
 
-      <input type="text" id="title" name="title" placeholder="Título do projeto" required
-             {% if edit_mode %}value="{{ project.name }}"{% endif %} />
+  <!-- ===== editor ===== -->
+  <section class="editor-pane">
+    <button class="menu-toggle" type="button" onclick="toggleSidebar()">☰</button>
 
-      <div id="editor">
-        {% if edit_mode %}{{ project.description|safe }}{% endif %}
-      </div>
-      <input type="hidden" name="content" id="content" />
-    </section>
-  </form>
+    <input id="title" name="title" placeholder="Título do projeto" required
+           {% if edit_mode %}value="{{ project.name }}"{% endif %} />
+    <div id="editor">{% if edit_mode %}{{ project.description|safe }}{% endif %}</div>
+    <input type="hidden" name="content" id="content" />
+  </section>
+</form>
 
-  <!-- Quill JS -->
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script>
-    // Inicializa Quill
-    const quill = new Quill('#editor', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          [{ header: [1, 2, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          ['blockquote', 'code-block'],
-          ['link', 'image'],
-          [{ align: [] }],
-          ['clean']
-        ]
-      }
-    });
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+  /* ===== Quill ===== */
+  const quill = new Quill('#editor',{theme:'snow'});
+  document.getElementById('create-form').addEventListener('submit',()=>{
+    document.getElementById('content').value = quill.root.innerHTML.trim();
+  });
 
-    // Salva HTML antes de enviar
-    document.getElementById('create-form').addEventListener('submit', () => {
-      document.getElementById('content').value = quill.root.innerHTML.trim();
-    });
-
-    // Preview da capa
-    document.getElementById('cover_image').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (file){
-        const url = URL.createObjectURL(file);
-        const img = document.getElementById('cover-preview');
-        img.src = url; img.style.display = 'block';
-      }
-    });
-
-    // Toggle sidebar (mobile)
-    function toggleSidebar(){
-      const sidebar  = document.getElementById('sidebar');
-      const backdrop = document.getElementById('backdrop');
-      sidebar.classList.toggle('open');
-      backdrop.classList.toggle('backdrop--show');
-      // fallback p/ navegadores sem :has
-      backdrop.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+  /* preview da imagem */
+  document.getElementById('cover_image').addEventListener('change',e=>{
+    const file=e.target.files[0];
+    if(file){
+      const url=URL.createObjectURL(file);
+      const img=document.getElementById('cover-preview');
+      img.src=url;img.style.display='block';
     }
-  </script>
+  });
+
+  /* sidebar toggle (mobile) */
+  function toggleSidebar(){
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+  }
+</script>
+
+<!-- ===== popula selects (e pré-seleciona se edit_mode) ===== -->
+<script>
+  const discSel = document.getElementById('discSelect');
+  const uniSel  = document.getElementById('uniSelect');
+  const habSel  = document.getElementById('habSelect');
+
+  const mapDiscUni = new Map();
+  const mapUniHab  = new Map();
+
+  fetch('/habilidades.json')
+   .then(r=>r.json()).then(data=>{
+     data.data.forEach(d=>{
+       const disc=d.disciplina;
+       d.anos.forEach(a=>{
+         a.unidades.forEach(u=>{
+           const key=disc+'|'+u.unidade;
+           if(!mapDiscUni.has(disc)) mapDiscUni.set(disc,new Set());
+           mapDiscUni.get(disc).add(u.unidade);
+           mapUniHab.set(key,u.habilidades.map(h=>({code:h.codigo,desc:h.descricao})));
+         });
+       });
+     });
+
+     /* disciplinas */
+     [...mapDiscUni.keys()].sort().forEach(d=>{
+       discSel.insertAdjacentHTML('beforeend',`<option value="${d}">${d}</option>`);
+     });
+
+     /* se edição, pré-select */
+     {% if edit_mode %}
+       const pj = {{ project|tojson }};
+       discSel.value = pj.discipline;
+       discSel.dispatchEvent(new Event('change'));
+
+       /* aguarda unidades popularem */
+       setTimeout(()=>{
+         uniSel.value = pj.unit;
+         uniSel.dispatchEvent(new Event('change'));
+
+         /* aguarda habilidades popularem */
+         setTimeout(()=>{ habSel.value = pj.ability; },0);
+       },0);
+
+       /* preenche Quill, já feito no corpo */
+     {% endif %}
+   });
+
+  /* disciplina → unidades */
+  discSel.addEventListener('change',()=>{
+    uniSel.innerHTML='<option hidden value="">Selecione…</option>';
+    habSel.innerHTML='<option hidden value="">—</option>';
+    habSel.disabled=true;
+
+    const disc=discSel.value;
+    if(!disc){uniSel.disabled=true;return;}
+    [...mapDiscUni.get(disc)].sort().forEach(u=>{
+      uniSel.insertAdjacentHTML('beforeend',`<option value="${u}">${u}</option>`);
+    });
+    uniSel.disabled=false;
+  });
+
+  /* unidade → habilidades */
+  uniSel.addEventListener('change',()=>{
+    habSel.innerHTML='<option hidden value="">Selecione…</option>';
+    const disc=discSel.value, uni=uniSel.value;
+    if(!uni){habSel.disabled=true;return;}
+
+    (mapUniHab.get(disc+'|'+uni)||[]).forEach(h=>{
+      habSel.insertAdjacentHTML('beforeend',
+        `<option value="${h.code}" title="${h.desc}">(${h.code})</option>`);
+    });
+    habSel.disabled=false;
+  });
+</script>
 </body>
 </html>
