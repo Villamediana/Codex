@@ -168,15 +168,7 @@
 
   <script>
     /* ---------- FECHA irmãos ---------- */
-    document.querySelectorAll('.habilidades details').forEach(det=>{
-      det.addEventListener('toggle',()=>{
-        if(det.open){
-          Array.from(det.parentNode.children)
-               .filter(sib=>sib.tagName==='DETAILS'&&sib!==det)
-               .forEach(sib=>sib.open=false);
-        }
-      });
-    });
+    
 
     /* ---------- Chips + reordenação ---------- */
     const ICONS={Decomposição:"🧩","Reconhecimento de Padrões":"🔍",Abstração:"📐",Algoritmos:"🤖"};
@@ -212,35 +204,44 @@
     function norm(t){return t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
 
     function filter(){
-      const q=norm(inp.value.trim());
-      clearBtn.style.display=q? "inline":"none";
+  const q = norm(inp.value.trim());
+  clearBtn.style.display = q ? "inline" : "none";
 
-      /* limpa destaques */
-      document.querySelectorAll('.highlight').forEach(el=>el.classList.remove('highlight'));
+  // 1. limpa destaques
+  document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
 
-      /* 1. filtra cards */
-      cards.forEach(card=>{
-        const li=card.closest("li");
-        const show=!q || norm(card.innerText).includes(q);
-        if(li) li.style.display=show? "":"none";
-        if(show && q) card.classList.add("highlight");
-      });
+  // 2. filtra cada card de habilidade
+  cards.forEach(card => {
+    const li = card.closest("li");
+    const showCard = !q || norm(card.innerText).includes(q);
+    if(li) li.style.display = showCard ? "" : "none";
+    if(showCard && q) card.classList.add("highlight");
+  });
 
-      /* 2. percorre detalhes - abre/fecha & destaca summaries */
-      details.slice().reverse().forEach(det=>{
-        const sum=det.querySelector("summary");
-        const sumMatch=q && norm(sum.innerText).includes(q);
-        const visibleLi=[...det.querySelectorAll('li')].some(li=>li.style.display!=="none");
-        const show=!q || sumMatch || visibleLi;
-        det.style.display=show? "":"none";
-        det.open = q ? show : det.open;          /* mantém estado anterior quando limpa busca */
-        if(sumMatch) sum.classList.add("highlight");
-      });
+  // 3. percorre todos os <details>, de dentro para fora
+  details.slice().reverse().forEach(det => {
+    const sum = det.querySelector("summary");
+    const sumMatch = q && norm(sum.innerText).includes(q);
+    // se qualquer summary FILHO bate o termo
+    const childSummaryMatch = [...det.querySelectorAll('details summary')]
+      .some(child => q && norm(child.innerText).includes(q));
+    // se qualquer <li> filho estiver visível
+    const anyVisibleLi = [...det.querySelectorAll('li')]
+      .some(li => li.style.display !== "none");
 
-      /* 3. scroll até o primeiro resultado */
-      const first=document.querySelector('.highlight');
-      if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
-    }
+    const shouldShow = !q || sumMatch || childSummaryMatch || anyVisibleLi;
+    det.style.display = shouldShow ? "" : "none";
+    // abre apenas se há match
+    if(q) det.open = sumMatch || childSummaryMatch || anyVisibleLi;
+
+    if(sumMatch) sum.classList.add("highlight");
+  });
+
+  // 4. rola até o primeiro destaque
+  const first = document.querySelector('.highlight');
+  if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
 
     inp.addEventListener("input",filter);
     clearBtn.addEventListener("click",()=>{inp.value="";filter();inp.focus();});

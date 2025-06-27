@@ -152,69 +152,103 @@
   const mapUniHab  = new Map();
 
   fetch('/habilidades.json')
-   .then(r=>r.json()).then(data=>{
-     data.data.forEach(d=>{
-       const disc=d.disciplina;
-       d.anos.forEach(a=>{
-         a.unidades.forEach(u=>{
-           const key=disc+'|'+u.unidade;
-           if(!mapDiscUni.has(disc)) mapDiscUni.set(disc,new Set());
-           mapDiscUni.get(disc).add(u.unidade);
-           mapUniHab.set(key,u.habilidades.map(h=>({code:h.codigo,desc:h.descricao})));
-         });
-       });
-     });
+    .then(r => r.json())
+    .then(data => {
+      data.data.forEach(d => {
+        const disc = d.disciplina;
 
-     /* disciplinas */
-     [...mapDiscUni.keys()].sort().forEach(d=>{
-       discSel.insertAdjacentHTML('beforeend',`<option value="${d}">${d}</option>`);
-     });
+        // inicializa Set de unidades para esta disciplina
+        if (!mapDiscUni.has(disc)) {
+          mapDiscUni.set(disc, new Set());
+        }
 
-     /* se edição, pré-select */
-     {% if edit_mode %}
-       const pj = {{ project|tojson }};
-       discSel.value = pj.discipline;
-       discSel.dispatchEvent(new Event('change'));
+        d.anos.forEach(a => {
+          a.unidades.forEach(u => {
+            // 1) acumula unidade temática em mapDiscUni
+            mapDiscUni.get(disc).add(u.unidade);
 
-       /* aguarda unidades popularem */
-       setTimeout(()=>{
-         uniSel.value = pj.unit;
-         uniSel.dispatchEvent(new Event('change'));
+            // 2) acumula habilidades em mapUniHab
+            const key = disc + '|' + u.unidade;
+            if (!mapUniHab.has(key)) {
+              mapUniHab.set(key, []);
+            }
+            const lista = mapUniHab.get(key);
+            u.habilidades.forEach(h => {
+              lista.push({ code: h.codigo, desc: h.descricao });
+            });
+            // dedupe por code
+            const dedupe = Array.from(
+              new Map(lista.map(h => [h.code, h])).values()
+            );
+            mapUniHab.set(key, dedupe);
+          });
+        });
+      });
 
-         /* aguarda habilidades popularem */
-         setTimeout(()=>{ habSel.value = pj.ability; },0);
-       },0);
+      /* popula <option> de disciplinas */
+      [...mapDiscUni.keys()].sort().forEach(d => {
+        discSel.insertAdjacentHTML(
+          'beforeend',
+          `<option value="${d}">${d}</option>`
+        );
+      });
 
-       /* preenche Quill, já feito no corpo */
-     {% endif %}
-   });
+      /* se edição, pré-seleciona */
+      {% if edit_mode %}
+        const pj = {{ project|tojson }};
+        discSel.value = pj.discipline;
+        discSel.dispatchEvent(new Event('change'));
 
-  /* disciplina → unidades */
-  discSel.addEventListener('change',()=>{
-    uniSel.innerHTML='<option hidden value="">Selecione…</option>';
-    habSel.innerHTML='<option hidden value="">—</option>';
-    habSel.disabled=true;
+        setTimeout(() => {
+          uniSel.value = pj.unit;
+          uniSel.dispatchEvent(new Event('change'));
 
-    const disc=discSel.value;
-    if(!disc){uniSel.disabled=true;return;}
-    [...mapDiscUni.get(disc)].sort().forEach(u=>{
-      uniSel.insertAdjacentHTML('beforeend',`<option value="${u}">${u}</option>`);
+          setTimeout(() => {
+            habSel.value = pj.ability;
+          }, 0);
+        }, 0);
+      {% endif %}
     });
-    uniSel.disabled=false;
+
+  /* quando muda disciplina → preenche todas as unidades temáticas */
+  discSel.addEventListener('change', () => {
+    uniSel.innerHTML = '<option hidden value="">Selecione…</option>';
+    habSel.innerHTML = '<option hidden value="">—</option>';
+    habSel.disabled = true;
+
+    const disc = discSel.value;
+    if (!disc) {
+      uniSel.disabled = true;
+      return;
+    }
+    // usa o Set de mapDiscUni para listar todas as unidades
+    [...mapDiscUni.get(disc)].sort().forEach(u => {
+      uniSel.insertAdjacentHTML(
+        'beforeend',
+        `<option value="${u}">${u}</option>`
+      );
+    });
+    uniSel.disabled = false;
   });
 
-  /* unidade → habilidades */
-  uniSel.addEventListener('change',()=>{
-    habSel.innerHTML='<option hidden value="">Selecione…</option>';
-    const disc=discSel.value, uni=uniSel.value;
-    if(!uni){habSel.disabled=true;return;}
-
-    (mapUniHab.get(disc+'|'+uni)||[]).forEach(h=>{
-      habSel.insertAdjacentHTML('beforeend',
-        `<option value="${h.code}" title="${h.desc}">(${h.code})</option>`);
+  /* quando muda unidade → preenche todas as habilidades acumuladas */
+  uniSel.addEventListener('change', () => {
+    habSel.innerHTML = '<option hidden value="">Selecione…</option>';
+    const disc = discSel.value;
+    const uni  = uniSel.value;
+    if (!uni) {
+      habSel.disabled = true;
+      return;
+    }
+    (mapUniHab.get(disc + '|' + uni) || []).forEach(h => {
+      habSel.insertAdjacentHTML(
+        'beforeend',
+        `<option value="${h.code}" title="${h.desc}">(${h.code})</option>`
+      );
     });
-    habSel.disabled=false;
+    habSel.disabled = false;
   });
 </script>
+
 </body>
 </html>
