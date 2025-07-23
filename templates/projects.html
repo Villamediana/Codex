@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,126 +8,334 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
   <style>
-    :root{
-      --accent:#27ae60;
-      --gray:#2c3e50;
-      --border:#e1e4e8;
-      --transition:.25s;
-      --chip-bg:#eef6f0;
+    :root {
+      --accent: #27ae60;
+      --gray: #2c3e50;
+      --border: #e1e4e8;
+      --transition: .25s;
+      --chip-bg: #eef6f0;
     }
 
-    /* ---------- Layout base ---------- */
-    body{margin:0;height:100vh;display:flex;overflow:hidden;font-family:system-ui,sans-serif;}
-
-    /* ---------- Sidebar ---------- */
-    .project-sidebar{
-      width:280px;flex-shrink:0;overflow-y:auto;padding:1rem 1.25rem;
-      border-right:2px solid var(--border);background:#fff;
-      position:relative;transition:transform var(--transition);z-index:1100;
-    }
-    .close-btn{display:none;border:none;background:none;font-size:1.4rem;color:var(--gray);
-               cursor:pointer;position:absolute;top:.6rem;right:1rem;}
-
-    /* ---------- Conteúdo + nav ---------- */
-    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
-    .project-main{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
-
-    /* ---------- Nav overrides (só nesta página) ---------- */
-    .top-nav{position:relative;display:flex;justify-content:space-between;align-items:center;
-             padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
-    .top-nav .nav-links{display:flex;gap:1rem;}
-    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
-    .top-nav a.active{border-bottom:2px solid var(--gray);}
-    .btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;
-                    font-size:.9rem;text-decoration:none;white-space:nowrap;}
-    .btn-formulario:hover{opacity:.9;}
-
-    /* seta voltar (mobile) */
-    .back-btn{display:none;position:absolute;left:1rem;font-size:1.4rem;
-              text-decoration:none;color:var(--gray);}
-
-    /* ---------- Backdrop ---------- */
-    .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;}
-
-    /* ---------- Pilares chip ---------- */
-    .pilar-chip{
-      display:inline-flex;align-items:center;gap:.18rem;
-      background:var(--chip-bg);border:1px solid var(--accent);
-      border-radius:14px;padding:.15rem .55rem;margin:.15rem .25rem .15rem 0;
-      font-size:.8rem;
+    /* ─── base layout ───────────────────────────────── */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
     }
 
-    /* ---------- Mobile (≤ 768 px) ---------- */
-    @media (max-width:768px){
-      body{flex-direction:column;}
+    /* ─── desktop sidebar ───────────────────────────── */
+    .project-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      padding: 1rem 1.25rem;
+      border-right: 2px solid var(--border);
+      background: #fff;
+      position: relative;
+      transition: transform var(--transition);
+      z-index: 1100;
+    }
 
-      .project-sidebar{
-        position:fixed;top:0;left:0;height:100%;width:80%;
-        transform:translateX(-100%);box-shadow:2px 0 6px rgb(0 0 0 /.25);
+    .project-sidebar a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .project-sidebar hr {
+      margin: .5rem 0 1rem;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    /* close button inside sidebar */
+    .close-btn {
+      display: none;
+      border: none;
+      background: none;
+      font-size: 1.4rem;
+      color: var(--gray);
+      cursor: pointer;
+      position: absolute;
+      top: .6rem;
+      right: 1rem;
+    }
+
+    /* mobile nav items (hidden on desktop) */
+    .nav-links-mobile {
+      display: none;
+    }
+
+    /* ─── content + top‑nav ─────────────────────────── */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .75rem 1.25rem;
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .top-nav .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .top-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      font-weight: 500;
+      opacity: .85;
+    }
+
+    .top-nav a.active {
+      border-bottom: 2px solid var(--accent);
+      opacity: 1;
+    }
+
+    .btn-formulario {
+      background: var(--accent);
+      color: #fff;
+      padding: .45rem .9rem;
+      border-radius: 6px;
+      font-size: .9rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: filter var(--transition);
+    }
+
+    .btn-formulario:hover {
+      filter: brightness(.95);
+    }
+
+    /* button to toggle sidebar on desktop (hidden) */
+    .menu-toggle {
+      display: none;
+      font-size: 1.6rem;
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      padding: .75rem 1rem;
+    }
+
+    /* Back button on mobile */
+    .back-btn {
+      display: none;
+      position: absolute;
+      left: 1rem;
+      font-size: 1.4rem;
+      text-decoration: none;
+      color: var(--gray);
+    }
+
+    /* project content */
+    .project-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .cover-image {
+      max-width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    /* breadcrumbs */
+    .project-main h2 {
+      margin-top: 0;
+      color: var(--gray);
+    }
+
+    .project-main em {
+      color: #555;
+    }
+
+    /* Backdrop */
+    #backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+      z-index: 1000;
+    }
+
+    /* Pilares chips */
+    .pilar-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .18rem;
+      background: var(--chip-bg);
+      border: 1px solid var(--accent);
+      border-radius: 14px;
+      padding: .15rem .55rem;
+      margin: .15rem .25rem .15rem 0;
+      font-size: .8rem;
+    }
+
+    /* ─── mobile only ───────────────────────────────── */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
       }
-      .project-sidebar.open{transform:translateX(0);}
-      .close-btn{display:block;}
 
-      .project-main{padding:1rem;}
+      /* show toggle buttons */
+      .menu-toggle {
+        display: block;
+      }
 
+      .close-btn {
+        display: block;
+      }
+
+      /* sidebar off‑canvas */
+      .project-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 80%;
+        height: 100%;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 6px rgba(0, 0, 0, .25);
+      }
+
+      .project-sidebar.open {
+        transform: translateX(0);
+      }
+
+      /* hide desktop nav */
       .top-nav .nav-links,
-      .top-nav .btn-formulario,
-      .top-nav .btn-create,
-      .menu-toggle{display:none!important;}
-      .back-btn{display:block;}
+      .top-nav .btn-formulario {
+        display: none !important;
+      }
+
+      /* mobile nav items */
+      .nav-links-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        padding: 0 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .nav-links-mobile a {
+        color: var(--gray);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      /* show back button */
+      .back-btn {
+        display: block;
+      }
+
+      /* adjust content padding */
+      .project-main {
+        padding: 1rem;
+      }
+
+      /* show backdrop */
+      #backdrop.show {
+        display: block;
+      }
     }
+    @media (max-width: 768px) {
+  /* esconde todo o container .side */
+  
 
-    /* botão menu vindo do nav */
-    .menu-toggle{display:none;}
+  /* — ou — 
+     se quiser manter o container mas só esconder o conteúdo: */
+  .side > * {
+    display: none !important;
+  }
+  .vol > * {
+    display: none !important;
+  }
+}
 
-    /* imagem de capa */
-    .cover-image{max-width:100%;border:1px solid var(--border);border-radius:4px;}
   </style>
 </head>
 
 <body>
+  <!-- Off‑canvas Sidebar -->
+  <aside id="sidebar" class="project-sidebar">
+    <button class="close-btn" onclick="toggleSidebar()">×</button>
+    <a class="vol" href="{{ url_for('index') }}">← Voltar</a>
+
+    <!-- mobile nav -->
+    <nav class="nav-links-mobile">
+      <a href="{{ url_for('index') }}">Projetos</a>
+      <a href="{{ url_for('pilares_view') }}">Pensamento Computacional</a>
+      <a href="{{ url_for('microbit_view') }}">Sobre micro:bit</a>
+      <a href="{{ url_for('habilidades_view') }}">Habilidades</a>
+      <a href="{{ url_for('create') }}">Novo</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header"
+        target="_blank" class="btn-formulario">Formulário</a>
+    </nav>
+
+<div class="side">
+      <hr />
+    <h5>Detalhes</h5>
+    <p><strong>Nome:</strong> {{ project.name }}</p>
+    <p><strong>Disciplina:</strong> {{ project.discipline }}</p>
+    {% if project.unit %}
+    <p><strong>Unidade temática:</strong><br>{{ project.unit }}</p>
+    {% endif %}
+    {% if project.abilities %}
+    <p><strong>Habilidades:</strong>
+      {% for code in project.abilities %}
+      ({{ code }}){% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
+    <div id="pilaresBox"></div>
+    <br>
+    <img class="cover-image" src="{{ url_for('static', filename=project.image) }}" alt="Imagem de {{ project.name }}" />
+</div>
+  </aside>
+
   <!-- Backdrop -->
   <div id="backdrop" class="backdrop" onclick="toggleSidebar()"></div>
 
-  <!-- ===== Sidebar ===== -->
-  <aside id="sidebar" class="project-sidebar">
-    <button class="close-btn" onclick="toggleSidebar()">×</button>
-
-    <a href="{{ url_for('index') }}">← Voltar</a>
-    <h5 style="margin-top:1rem;">Detalhes</h5><hr/>
-    <p><strong>Nome:</strong> {{ project.name }}</p>
-    <p><strong>Disciplina:</strong> {{ project.discipline }}</p>
-
-    {% if project.unit %}
-      <p><strong>Unidade temática:</strong><br>{{ project.unit }}</p>
-    {% endif %}
-
-    {% if project.ability %}
-      <p><strong>Habilidade:</strong> ({{ project.ability }})</p>
-    {% endif %}
-
-    <!-- chips serão injetados aqui -->
-    <div id="pilaresBox"></div>
-  </aside>
-
-  <!-- ===== Área direita ===== -->
+  <!-- main content -->
   <div class="content-area">
-    {% include 'nav.html' %}
-    <a href="{{ url_for('index') }}" class="back-btn">←</a>
+    <nav class="top-nav">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}">Projetos</a>
+        <a href="{{ url_for('pilares_view') }}">Pensamento Computacional</a>
+        <a href="{{ url_for('microbit_view') }}">Sobre micro:bit</a>
+        <a href="{{ url_for('habilidades_view') }}">Habilidades</a>
+        <a href="{{ url_for('create') }}">Novo</a>
+      </div>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header"
+        target="_blank" class="btn-formulario">Formulário</a>
+    </nav>
 
     <section class="project-main">
-      <img class="cover-image"
-           src="{{ url_for('static', filename=project.image) }}"
-           alt="Imagen de {{ project.name }}" />
 
       <h2>{{ project.name }}</h2>
       <p style="margin:.6rem 0;color:var(--gray);font-size:.95rem;">
-        <em>{{ project.discipline }}
-            {% if project.unit %} • {{ project.unit }}{% endif %}
-            {% if project.ability %} • ({{ project.ability }}){% endif %}
+        <em>
+          {{ project.discipline }}
+          {% if project.unit %} • {{ project.unit }}{% endif %}
+          {% if project.abilities %} •
+          {% for code in project.abilities %}( {{ code }} ){% if not loop.last %}, {% endif %}{% endfor %}
+          {% endif %}
         </em>
       </p>
-      <hr/>
+      <hr />
       <div class="project-content">
         {{ project.description|safe }}
       </div>
@@ -134,51 +343,67 @@
   </div>
 
   <script>
-    /* abre e fecha sidebar no mobile */
-    function toggleSidebar(){
-      const sb=document.getElementById('sidebar');
-      const bp=document.getElementById('backdrop');
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const bp = document.getElementById('backdrop');
       sb.classList.toggle('open');
-      bp.style.display = sb.classList.contains('open') ? 'block' : 'none';
+      if (sb.classList.contains('open')) {
+        bp.classList.add('show');
+      } else {
+        bp.classList.remove('show');
+      }
     }
 
-    /* ===== carrega pilares da habilidade (se houver) ===== */
-    {% if project.ability %}
-    (function(){
-      const abilityCode="{{ project.ability }}";
-      const ICONS={Decomposição:"🧩","Reconhecimento de Padrões":"🔍",Abstração:"📐",Algoritmos:"🤖"};
-      const box=document.getElementById('pilaresBox');
+    {% if project.abilities %}
+    (function () {
+      const abilityCodes = {{ project.abilities| tojson
+    }};
+    const ICONS = {
+      Decomposição: "🧩",
+      "Reconhecimento de Padrões": "🔍",
+      Abstração: "📐",
+      Algoritmos: "🤖"
+    };
+    const box = document.getElementById('pilaresBox');
 
-      fetch('/habilidades.json')
-        .then(r=>r.json())
-        .then(js=>{
-          let pilares=null;
+    fetch('/habilidades.json')
+      .then(r => r.json())
+      .then(js => {
+        const frag = document.createDocumentFragment();
+        frag.appendChild(document.createElement('hr'));
+        const lbl = document.createElement('p');
+        lbl.innerHTML = '<strong>Pilares:</strong>';
+        frag.appendChild(lbl);
 
-          outer:for(const d of js.data)
-            for(const a of d.anos)
-              for(const u of a.unidades)
-                for(const h of u.habilidades)
-                  if(h.codigo===abilityCode){ pilares=h.pilares; break outer; }
-
-          if(!pilares||!pilares.length) return;
-
-          const frag=document.createDocumentFragment();
-          frag.appendChild(document.createElement('hr'));
-          const label=document.createElement('p');
-          label.innerHTML='<strong>Pilares:</strong>';
-          frag.appendChild(label);
-
-          pilares.forEach(p=>{
-            const chip=document.createElement('span');
-            chip.className='pilar-chip';
-            chip.textContent=`${ICONS[p]||''} ${p}`;
+        abilityCodes.forEach(code => {
+          let pilares = null;
+          outer:
+          for (const d of js.data) {
+            for (const a of d.anos) {
+              for (const u of a.unidades) {
+                for (const h of u.habilidades) {
+                  if (h.codigo === code) {
+                    pilares = h.pilares;
+                    break outer;
+                  }
+                }
+              }
+            }
+          }
+          if (!pilares) return;
+          pilares.forEach(p => {
+            const chip = document.createElement('span');
+            chip.className = 'pilar-chip';
+            chip.textContent = `${ICONS[p] || ''} ${p}`;
             frag.appendChild(chip);
           });
-          box.appendChild(frag);
         });
-    })();
+
+        box.appendChild(frag);
+      });
+    }) ();
     {% endif %}
   </script>
-
 </body>
+
 </html>

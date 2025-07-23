@@ -1,131 +1,282 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projetos</title>
 
+  <!-- Limpa caches do navegador -->
+  <script>
+    (function () {
+      try { localStorage.clear(); sessionStorage.clear(); } catch (e) { }
+      if ('caches' in window) {
+        caches.keys().then(names => names.forEach(n => caches.delete(n)));
+      }
+    })();
+  </script>
+
+  <!-- Assets externos -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
 
   <style>
-    :root{
-      --accent:#27ae60;
-      --gray:#2c3e50;
-      --border:#e1e4e8;
-      --transition:.25s;
+    /* ---------- Variáveis ---------- */
+    :root {
+      --accent: #27ae60;
+      --gray: #2c3e50;
+      --border: #e1e4e8;
+      --bg: #f7f9fb;
+      --transition: .25s;
     }
 
-    /* ---------- Layout base ---------- */
-    body{
-      margin:0;
-      min-height:100vh;              /* permite crescer no mobile */
-      display:flex;
-      overflow-x:hidden;             /* só bloqueia scroll lateral */
-      font-family:system-ui,sans-serif;
+    /* ---------- Reset ---------- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .sidebar{
-      width:280px;
-      flex-shrink:0;
-      background:#fff;
-      overflow-y:auto;
-      transition:transform var(--transition);
-      z-index:1100;
-      position:relative;
+
+    /* ---------- Layout ---------- */
+    body {
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
     }
-    .content-area{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      min-height:0;                 /* evita cortar grid */
+
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #fff;
+      overflow-y: auto;
+      transition: transform var(--transition);
+      z-index: 1100;
+      position: relative;
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     /* ---------- Navegação superior ---------- */
-    .top-nav{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
-    .top-nav .nav-links{display:flex;gap:1rem;}
-    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
-    .top-nav a.active{border-bottom:2px solid var(--gray);}
-    .btn-create,.btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;font-size:.9rem;text-decoration:none;white-space:nowrap;}
-    .btn-create:hover,.btn-formulario:hover{opacity:.9;}
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .75rem 1.25rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .top-nav .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .top-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      font-weight: 500;
+      opacity: .85;
+    }
+
+    .top-nav a.active {
+      border-bottom: 2px solid var(--accent);
+      opacity: 1;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+      padding: .45rem .9rem;
+      border-radius: 6px;
+      font-size: .9rem;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-accent:hover {
+      filter: brightness(.95);
+    }
 
     /* ---------- Conteúdo ---------- */
-    .main-content{
-      flex:1 1 auto;
-      overflow-y:auto;              /* rolagem vertical */
-      padding:1.5rem 2rem;
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
     }
-    .card-grid{
-      display:grid;
+
+    .card-grid {
+      display: grid;
       grid-template-columns: repeat(1, 1fr);
-      gap:1.25rem;
-      max-width:1400px;             /* +largura, some cutoff */
-      margin:0 auto;
-      justify-items:center;
+      gap: 1.25rem;
+      max-width: 1400px;
+      margin: 0 auto;
     }
-    .card{
-      position:relative;
-      border:1px solid var(--border);
-      border-radius:8px;
-      overflow:hidden;
-      box-shadow:0 1px 3px rgba(0,0,0,.07);
-      width:100%;
-      max-width:320px;             /* evita estourar em telas MUITO largas */
+
+    .card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+      transition: box-shadow var(--transition), transform var(--transition);
     }
-    .card img{width:100%;height:160px;object-fit:cover;}
-    .card-body{padding:1rem;}
-    .card-title{margin:.25rem 0;font-size:1.05rem;color:var(--gray);}
-    .discipline-label{font-size:.85rem;color:#555;}
 
-    /* Botões editar/excluir */
-    .edit-btn,.delete-btn{position:absolute;top:8px;width:26px;height:26px;border:none;background:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15);}
-    .edit-btn{right:40px;}
-    .delete-btn{right:8px;font-size:18px;line-height:1;color:#e74c3c;}
-    .delete-btn:hover{background:#fef0ef;}
-
-    /* ---------- Sidebar mobile ---------- */
-    .menu-toggle,.close-btn{
-      border:none;background:none;font-size:1.4rem;color:var(--gray);cursor:pointer;
+    .card:hover {
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+      transform: translateY(-4px);
     }
-    .menu-toggle{display:none;}
-    .close-btn{display:none;position:absolute;top:.7rem;right:1rem;}
 
-    /* Links extras (mobile) */
-    .mobile-nav{display:none;flex-direction:column;gap:.75rem;padding:0 1.25rem 1.5rem;}
-    .mobile-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
 
-    /* ---------- Backdrop ---------- */
-    .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1000;}
+    .card-body {
+      padding: 1rem;
+    }
 
-    /* ---------- ≤ 768 px ---------- */
-    @media (max-width:768px){
-      body{
-        flex-direction:column;
-        overflow-y:auto;            /* habilita scroll geral */
+    .card-title {
+      font-size: 1.05rem;
+      color: var(--gray);
+      margin-bottom: .25rem;
+    }
+
+    .discipline-label {
+      font-size: .85rem;
+      color: #555;
+    }
+
+    /* ---------- Botões ação ---------- */
+    .edit-btn,
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+    }
+
+    .edit-btn {
+      right: 44px;
+    }
+
+    .delete-btn {
+      right: 10px;
+      font-size: 18px;
+      line-height: 1;
+      color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background: #fef0ef;
+    }
+
+    /* ---------- Sidebar mobile & backdrop ---------- */
+    .menu-toggle,
+    .close-btn {
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      color: var(--gray);
+      cursor: pointer;
+    }
+
+    .menu-toggle {
+      display: none;
+    }
+
+    .close-btn {
+      display: none;
+      position: absolute;
+      top: .7rem;
+      right: 1rem;
+    }
+
+    .mobile-nav {
+      display: none;
+      flex-direction: column;
+      gap: .75rem;
+      padding: 0 1.25rem 1.5rem;
+    }
+
+    .mobile-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .3);
+      z-index: 1000;
+    }
+
+    /* ---------- Breakpoints ---------- */
+    @media (min-width:768px) {
+      .card-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
-      .sidebar{
-        position:fixed;
-        top:0;left:0;
-        height:100%;
-        width:80%;
-        transform:translateX(-100%);
-        box-shadow:2px 0 6px rgba(0,0,0,.2);
-      }
-      .sidebar.open{transform:translateX(0);}
-      .content-area{min-height:100vh;}
-      .top-nav{border-bottom:none;padding:.6rem 1rem;}
-      .top-nav .nav-links,.top-nav .btn-formulario{display:none;}
-      .menu-toggle{display:block;}
-      .close-btn{display:block;}
-      .mobile-nav{display:flex;}
     }
 
-    @media (min-width: 768px) {
-  .card-grid {
-    /* força no máximo 3 colunas iguais */
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+    @media (max-width:768px) {
+      body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
 
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 80%;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 6px rgba(0, 0, 0, .2);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .top-nav {
+        border-bottom: none;
+        padding: .6rem 1rem;
+      }
+
+      .top-nav .nav-links,
+      .top-nav .btn-formulario {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .close-btn {
+        display: block;
+      }
+
+      .mobile-nav {
+        display: flex;
+      }
+    }
   </style>
 </head>
 
@@ -141,32 +292,50 @@
     <h5 style="padding:1rem 1.25rem 0;">Filtros</h5>
     <hr />
     <div style="padding:0 1.25rem 1rem;">
-      <input type="text" id="search-input" placeholder="Buscar projeto..." style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;" />
+      <input id="search-input" placeholder="Buscar projeto..."
+        style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;">
     </div>
 
     <div class="filters" style="padding:0 1.25rem 1.5rem;">
       <h6>Disciplina</h6>
       {% for disc in disciplines %}
       <div class="form-check">
-        <input type="checkbox" id="filter-{{ disc|lower|replace(' ', '-') }}" value="{{ disc }}" checked />
+        <input type="checkbox" id="filter-{{ disc|lower|replace(' ', '-') }}" value="{{ disc }}" checked>
         <label for="filter-{{ disc|lower|replace(' ', '-') }}">{{ disc }}</label>
       </div>
       {% endfor %}
     </div>
 
+    <!-- Navegação extra (mobile) -->
     <nav class="mobile-nav">
-      <a href="{{ url_for('index') }}">Projetos</a>
+      <a href="{{ url_for('index') }}" class="active">Projetos</a>
       <a href="{{ url_for('pilares_view') }}">Pensamento Computacional</a>
       <a href="{{ url_for('microbit_view') }}">Sobre micro:bit</a>
       <a href="{{ url_for('habilidades_view') }}">Habilidades</a>
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header" target="_blank">Formulário</a>
+      <a href="{{ url_for('create') }}">Novo</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header"
+        target="_blank">Formulário</a>
     </nav>
   </aside>
 
   <!-- Área principal -->
   <div class="content-area">
 
-    {% include 'nav.html' %}
+    <!-- Navegação superior -->
+    <nav class="top-nav">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="active">Projetos</a>
+        <a href="{{ url_for('pilares_view') }}">Pensamento Computacional</a>
+        <a href="{{ url_for('microbit_view') }}">Sobre micro:bit</a>
+        <a href="{{ url_for('habilidades_view') }}">Habilidades</a>
+        <a href="{{ url_for('create') }}">Novo</a>
+      </div>
+
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header"
+        target="_blank" class="btn-accent btn-formulario">Formulário</a>
+    </nav>
 
     <section class="main-content">
       <h2>Lista de Projetos</h2>
@@ -175,18 +344,19 @@
         {% for p in projects %}
         <div class="card" data-discipline="{{ p.discipline }}" data-name="{{ p.name | lower }}">
           <form method="POST" action="{{ url_for('delete_project', project_id=p.id) }}"
-                onsubmit="return confirm('Deseja excluir o projeto {{ p.name }}?');"
-                class="delete-form">
+            onsubmit="return confirm('Deseja excluir o projeto {{ p.name }}?');">
             <button type="submit" class="delete-btn" title="Excluir">×</button>
           </form>
 
           <a href="{{ url_for('edit_project', project_id=p.id) }}" class="edit-btn" title="Editar">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#555"/>
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                fill="#555" />
             </svg>
           </a>
 
-          <img src="{{ url_for('static', filename=p.image) }}" alt="Imagem de {{ p.name }}" />
+          <img src="{{ url_for('static', filename=p.image) }}" alt="Imagem de {{ p.name }}">
 
           <div class="card-body">
             <h5 class="card-title">{{ p.name }}</h5>
@@ -199,10 +369,11 @@
     </section>
   </div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
-    function toggleSidebar(){
+    function toggleSidebar() {
       const sb = document.getElementById('sidebar');
       const bd = document.getElementById('backdrop');
       sb.classList.toggle('open');
@@ -210,54 +381,25 @@
     }
   </script>
 
+  <!-- Liberação / ocultação de botões -->
+  <script>
+    const btns = (sel, val) => document.querySelectorAll(sel).forEach(b => b.style.display = val);
+    const TTL = 24 * 60 * 60 * 1000;
 
-<script>
-  // Verifica se a liberação está válida (1 dia)
-  function liberacaoValida() {
-    var ts = localStorage.getItem('liberado_ate');
-    if (!ts) return false;
-    return Date.now() < parseInt(ts);
-  }
-
-  // Oculta todos os botões de ação (editar, apagar, novo)
-  function ocultarBotoes() {
-    document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = "none");
-    document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "none");
-    var btnNovo = document.getElementById("btn-create");
-    if (btnNovo) btnNovo.style.display = "none";
-    console.log("Botões ocultados!");
-  }
-
-  // Mostra todos os botões de ação (editar, apagar, novo)
-  function mostrarBotoes() {
-    document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = "");
-    document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "");
-    var btnNovo = document.getElementById("btn-create");
-    if (btnNovo) btnNovo.style.display = "";
-    console.log("Botões Editar, Apagar e +Novo liberados!");
-  }
-
-  // Executa ao carregar a página: verifica se está liberado
-  window.addEventListener('DOMContentLoaded', function() {
-    if (liberacaoValida()) {
-      mostrarBotoes();
-    } else {
-      ocultarBotoes();
+    function liberacaoValida() {
+      const ts = localStorage.getItem('liberado_ate');
+      return ts && Date.now() < +ts;
     }
-  });
+    function ocultarBotoes() { btns('.edit-btn, .delete-btn', 'none'); }
+    function mostrarBotoes() { btns('.edit-btn, .delete-btn', ''); }
 
-  // Função global para liberar por 1 dia
-  window.liberar = function() {
-    localStorage.setItem('liberado_ate', Date.now() + 24*60*60*1000);
-    mostrarBotoes();
-  };
-
-  // Função global para ocultar e remover permissão
-  window.ocultar = function() {
-    localStorage.removeItem('liberado_ate');
-    ocultarBotoes();
-  };
-</script>
+    window.addEventListener('DOMContentLoaded', () => {
+      liberacaoValida() ? mostrarBotoes() : ocultarBotoes();
+    });
+    window.liberar = () => { localStorage.setItem('liberado_ate', Date.now() + TTL); mostrarBotoes(); };
+    window.ocultar = () => { localStorage.removeItem('liberado_ate'); ocultarBotoes(); };
+  </script>
 
 </body>
+
 </html>

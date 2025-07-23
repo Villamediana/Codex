@@ -1,95 +1,307 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ pilar.name }}</title>
+
+  <!-- CSS global -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
   <style>
-    :root{
-      --accent:#27ae60;
-      --gray:#2c3e50;
-      --border:#e1e4e8;
+    :root {
+      --accent: #27ae60;
+      --gray: #2c3e50;
+      --border: #e1e4e8;
+      --bg: #f7f9fb;
+      --transition: .25s;
     }
 
-    /* ---------- Layout base ---------- */
-    body{margin:0;height:100vh;display:flex;overflow:hidden;font-family:system-ui,sans-serif;}
-
-    /* ---------- Sidebar ---------- */
-    .project-sidebar{
-      width:280px;flex-shrink:0;overflow-y:auto;padding:1rem 1.25rem;
-      border-right:2px solid var(--border);background:#fff;
-    }
-    .sidebar-meta h5{margin-top:.5rem;}
-
-    /* ---------- Conteúdo + nav ---------- */
-    .content-area{flex:1;display:flex;flex-direction:column;height:100%;}
-    .project-main{flex:1;overflow-y:auto;padding:1.5rem 2rem;}
-
-    .top-nav{display:flex;justify-content:space-between;align-items:center;
-             padding:.75rem 1.25rem;border-bottom:2px solid var(--border);}
-    .nav-links{display:flex;gap:1rem;}
-    .top-nav a{text-decoration:none;color:var(--gray);font-weight:500;}
-    .top-nav a.active{border-bottom:2px solid var(--gray);}
-    .btn-formulario{background:var(--accent);color:#fff;padding:.45rem .9rem;border-radius:6px;font-size:.9rem;text-decoration:none;}
-    .btn-formulario:hover{opacity:.9;}
-
-    .cover-image{width:100%;height:260px;object-fit:contain;border:1px solid var(--border);
-                 border-radius:4px;margin-bottom:1rem;}
-
-    /* ---------- Mobile (≤768px) ---------- */
-    @media (max-width:768px){
-      body{flex-direction:column;}
-
-      /* Sidebar no topo e oculta o meta */
-      .project-sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);}
-      .sidebar-meta{display:none;}
-
-      /* Esconde nav e seta voltar */
-      .top-nav{display:none;}
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
+    body {
+      display: flex;
+      height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+    }
 
-    
-/* ===== BOTÃO MENU ===== */
-.menu-toggle{
-  display:none;                /* desktop: some  */
-  background:none;
-  border:0;
-  font-size:1.6rem;
-  cursor:pointer;
-}
+    /* ─── desktop sidebar ───────────────────────────────── */
+    .project-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      padding: 1rem 1.25rem;
+      border-right: 2px solid var(--border);
+      background: #fff;
+    }
 
+    .project-sidebar a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
 
+    .project-sidebar a:hover {
+      text-decoration: underline;
+    }
 
+    .sidebar-meta {
+      margin-top: 1rem;
+    }
+
+    .sidebar-meta h5 {
+      margin-bottom: .5rem;
+      color: var(--gray);
+    }
+
+    .sidebar-meta hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: .5rem 0 1rem;
+    }
+
+    .sidebar-meta p {
+      margin-bottom: 1rem;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .sidebar-meta .cover-image {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      object-fit: contain;
+      background: #fff;
+      margin-top: .5rem;
+    }
+
+    /* ─── desktop top‑nav + content ─────────────────────── */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .75rem 1.25rem;
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .top-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      font-weight: 500;
+      opacity: .85;
+    }
+
+    .top-nav a.active {
+      border-bottom: 2px solid var(--accent);
+      opacity: 1;
+    }
+
+    .btn-accent {
+      display: inline-block;
+      padding: .45rem .9rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      color: #fff;
+      background: var(--accent);
+      text-decoration: none;
+      transition: filter var(--transition);
+    }
+
+    .btn-accent:hover {
+      filter: brightness(.95);
+    }
+
+    .project-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .project-main h2 {
+      color: var(--gray);
+      margin-bottom: .5rem;
+    }
+
+    .project-main em {
+      color: #555;
+    }
+
+    /* ─── hide mobile-only elements on desktop ─────────── */
+    .menu-toggle,
+    .close-btn,
+    .nav-links-mobile,
+    #backdrop {
+      display: none;
+    }
+
+    /* ─── mobile only ──────────────────────────────────── */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      /* toggle button (mobile) */
+      .menu-toggle {
+        display: block !important;
+        font-size: 1.6rem;
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        padding: .75rem 1rem;
+        align-self: flex-start;
+      }
+
+      /* hide desktop sidebar-meta and top-nav */
+      .sidebar-meta {
+        display: none;
+      }
+
+      .top-nav {
+        display: none;
+      }
+
+      /* off‑canvas sidebar */
+      .project-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform var(--transition);
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        padding-top: 1rem;
+      }
+
+      .project-sidebar.open {
+        transform: translateX(0);
+      }
+
+      /* close button inside sidebar */
+      .close-btn {
+        display: block;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--gray);
+        cursor: pointer;
+        align-self: flex-end;
+        padding: .75rem 1rem;
+      }
+
+      /* mobile nav items */
+      .nav-links-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        padding: 0 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .nav-links-mobile a {
+        color: var(--gray);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      /* backdrop */
+      #backdrop {
+        display: none;
+        /* escondido por padrão */
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .3);
+        z-index: 1000;
+      }
+
+      #backdrop.show {
+        display: block;
+        /* só mostra quando .show */
+      }
+    }
   </style>
 </head>
 
 <body>
+  <!-- botão de abrir menu (mobile) -->
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
   <!-- Sidebar -->
-  <aside class="project-sidebar">
-    <a href="{{ url_for('index') }}">← Voltar</a>
+<aside id="project-sidebar" class="project-sidebar">
+  <button class="close-btn" onclick="toggleSidebar()">×</button>
+  <a href="{{ url_for('index') }}">← Voltar</a>
 
-    <!-- bloco de detalhes (desktop apenas) -->
-    <div class="sidebar-meta">
-  <h5>Detalhes</h5>
-  <hr />
-  <p><strong>Descrição:</strong></p>
-  <p style="margin-top: 0.5rem;">
-    Esta seção apresenta os fundamentos do <strong>Pensamento Computacional</strong> e seus quatro pilares — decomposição, padrões, abstração e algoritmos — como base para o desenvolvimento de habilidades cognitivas aplicáveis em diversas áreas do conhecimento.
-  </p>
-</div>
+  <!-- itens de navegação (apenas mobile) -->
+  <nav class="nav-links-mobile">
+    <a href="{{ url_for('index') }}">Projetos</a>
+    <a href="{{ url_for('pilares_view') }}" class="active">Pensamento Computacional</a>
+    <a href="{{ url_for('microbit_view') }}">Sobre o micro:bit</a>
+    <a href="{{ url_for('habilidades_view') }}">Habilidades</a>
+    <a href="{{ url_for('create') }}">Novo</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header"
+      target="_blank">Formulário</a>
+  </nav>
 
-  </aside>
+  <!-- conteúdo original do desktop -->
+  <div class="sidebar-meta">
+    <h5>Detalhes</h5>
+    <hr />
 
-  <!-- Área direita -->
+    <p>
+      Esta seção apresenta os fundamentos do <strong>Pensamento Computacional</strong> e seus quatro pilares —
+      decomposição, padrões, abstração e algoritmos — como base para o desenvolvimento de habilidades cognitivas
+      aplicáveis em diversas áreas do conhecimento.
+    </p>
+
+    <img class="cover-image" src="{{ url_for('static', filename=pilar.image) }}" alt="Imagem de {{ pilar.name }}">
+  </div>
+</aside>
+
+
+  <!-- backdrop (mobile) -->
+  <div id="backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Área principal -->
   <div class="content-area">
-    {% include 'nav.html' %}
+    <!-- Navegação superior -->
+    <nav class="top-nav">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}">Projetos</a>
+        <a href="{{ url_for('pilares_view') }}" class="active">Pensamento Computacional</a>
+        <a href="{{ url_for('microbit_view') }}">Sobre micro:bit</a>
+        <a href="{{ url_for('habilidades_view') }}">Habilidades</a>
+        <a href="{{ url_for('create') }}">Novo</a>
+      </div>
+
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfqf776C8mtneSYdsFmEV6RDLfmqXuI-46qhDPs3jMf7vACwg/viewform?usp=header"
+        target="_blank" class="btn-accent btn-formulario">Formulário</a>
+    </nav>
     <section class="project-main">
-      <img class="cover-image" src="{{ url_for('static', filename=pilar.image) }}"
-           alt="Imagen de {{ pilar.name }}" />
       <h2>{{ pilar.name }}</h2>
       <p><em>{{ pilar.short }}</em></p>
       <hr />
@@ -98,5 +310,15 @@
       </div>
     </section>
   </div>
+
+  <script>
+    function toggleSidebar() {
+      const sb = document.getElementById('project-sidebar');
+      const bd = document.getElementById('backdrop');
+      sb.classList.toggle('open');
+      bd.classList.toggle('show');
+    }
+  </script>
 </body>
+
 </html>

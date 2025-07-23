@@ -5,7 +5,7 @@
   --bg-card: #ffffff;
   --text-primary: #2c3e50;
   --text-secondary: #7f8c8d;
-  --accent: #3498db;
+  --accent: #73bced;
   --shadow: rgba(0, 0, 0, 0.1);
   --border-radius: 10px;
   --transition: 0.3s ease;
@@ -42,6 +42,10 @@ body {
   height: 100%;
 }
 
+.active {
+      border-bottom: 2px solid var(--accent);
+      opacity: 1;
+    }
 /* --------------------- SIDEBAR ---------------------- */
 .sidebar {
   background-color: var(--bg-sidebar);
