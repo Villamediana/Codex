@@ -352,8 +352,8 @@
           <div class="card-body">
             <h5 class="card-title">{{ p.name }}</h5>
             <p><span class="discipline-label">{{ p.discipline }}</span></p>
-            <a href="{{ url_for('project_detail', project_id=p.id) }}" class="stretched-link"></a>
           </div>
+          <a href="{{ url_for('project_detail', project_id=p.id) }}" class="stretched-link"></a>
         </div>
         {% endfor %}
       </div>
