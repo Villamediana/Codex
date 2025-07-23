@@ -7,15 +7,6 @@
   <title>Projetos</title>
 
   <!-- Limpa caches do navegador -->
-  <script>
-    (function () {
-      try { localStorage.clear(); sessionStorage.clear(); } catch (e) { }
-      if ('caches' in window) {
-        caches.keys().then(names => names.forEach(n => caches.delete(n)));
-      }
-    })();
-  </script>
-
   <!-- Assets externos -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />

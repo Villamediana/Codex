@@ -1,68 +1,88 @@
-from flask import Flask, render_template, abort, request, redirect, url_for, send_from_directory
-import json
-import os
+from flask import (
+    Flask, render_template, render_template_string, abort,
+    request, redirect, url_for, send_from_directory, session
+)
 from werkzeug.utils import secure_filename
 from datetime import datetime
+import json, os
 
 from script import start_pipeline  # seu módulo de pipeline/background
 
-app = Flask(__name__)
+app  = Flask(__name__)
+app.secret_key = "4cpp0t12018**A"
 
-# ─── Configuração de upload ────────────────────────────────────────────────
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "images")
+# ─── Configurações ────────────────────────────────────────────────────────
+ADMIN_PASSWORD      = "1f1sul*2o25"
+ALLOWED_EXTENSIONS  = {"png", "jpg", "jpeg", "gif"}
+BASE_DIR            = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER       = os.path.join(BASE_DIR, "static", "images")
+JSON_PATH           = os.path.join(BASE_DIR, "projects.json")
+HAB_PATH            = os.path.join(BASE_DIR, "habilidades.json")
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-def allowed_file(filename):
+# ─── Helpers ──────────────────────────────────────────────────────────────
+def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ─── Carga inicial de projects.json ──────────────────────────────────────
-JSON_PATH = os.path.join(BASE_DIR, "projects.json")
-with open(JSON_PATH, encoding="utf-8") as f:
-    projects = json.load(f)
+def load_projects() -> list[dict]:
+    with open(JSON_PATH, encoding="utf-8") as f:
+        data = json.load(f)
 
-# ─── ROTA PRINCIPAL ─────────────────────────────────────────────────────────
+    dirty = False
+    for p in data:
+        if "aprov" not in p:          # garante chave default
+            p["aprov"] = False
+            dirty = True
+    if dirty:                         # corrige arquivo na primeira execução
+        save_projects(data)
+    return data
+
+def save_projects(data: list[dict]) -> None:
+    with open(JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+def approved_only(data: list[dict]) -> list[dict]:
+    return [p for p in data if p.get("aprov")]
+
+# carrega em memória na partida
+all_projects = load_projects()
+
+# ─── Rotas principais ─────────────────────────────────────────────────────
 @app.route("/")
 def index():
-    start_pipeline()  # dispara em background, se ainda não rodando
-    disciplines = sorted({p["discipline"] for p in projects})
+    projects      = approved_only(all_projects)
+    disciplines   = sorted({p["discipline"] for p in projects})
     return render_template("index.html", projects=projects, disciplines=disciplines)
 
-# ─── Detalhe de projeto ────────────────────────────────────────────────────
 @app.route("/projects/<int:project_id>")
 def project_detail(project_id):
-    proj = next((p for p in projects if p["id"] == project_id), None)
+    proj = next((p for p in all_projects if p["id"] == project_id), None)
     if not proj:
         abort(404)
     return render_template("projects.html", project=proj)
 
-# ─── Exclui projeto ─────────────────────────────────────────────────────────
 @app.route("/delete/<int:project_id>", methods=["POST"])
 def delete_project(project_id):
-    global projects
-    projects = [p for p in projects if p["id"] != project_id]
-    with open(JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(projects, f, indent=2, ensure_ascii=False)
+    global all_projects
+    all_projects = [p for p in all_projects if p["id"] != project_id]
+    save_projects(all_projects)
     return redirect(url_for("index"))
 
-# ─── Cria projeto ──────────────────────────────────────────────────────────
 @app.route("/create", methods=["GET", "POST"])
 def create():
     if request.method == "POST":
-        title       = request.form.get("title", "").strip()
-        discipline  = request.form.get("discipline", "").strip()
-        unit        = request.form.get("unit", "").strip()
-        # captura múltiplas habilidades
-        abilities   = request.form.getlist("abilities")
-        content     = request.form.get("content", "").strip()
+        title      = request.form.get("title", "").strip()
+        discipline = request.form.get("discipline", "").strip()
+        unit       = request.form.get("unit", "").strip()
+        abilities  = request.form.getlist("abilities")
+        content    = request.form.get("content", "").strip()
 
-        # validação: todas as strings e pelo menos uma habilidade
         if not all([title, discipline, unit, content]) or not abilities:
             abort(400, "Campos obrigatórios faltando.")
 
-        new_id = max((p["id"] for p in projects), default=0) + 1
+        new_id = max((p["id"] for p in all_projects), default=0) + 1
 
         file = request.files.get("cover_image")
         if file and allowed_file(file.filename):
@@ -72,38 +92,35 @@ def create():
         else:
             img = "images/placeholder.jpg"
 
-        projects.append({
-            "id": new_id,
-            "name": title,
-            "discipline": discipline,
-            "unit": unit,
-            # armazena a lista de códigos selecionados
-            "abilities": abilities,
+        new_proj = {
+            "id":          new_id,
+            "name":        title,
+            "discipline":  discipline,
+            "unit":        unit,
+            "abilities":   abilities,
             "description": content,
-            "image": img
-        })
-        with open(JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump(projects, f, indent=2, ensure_ascii=False)
+            "image":       img,
+            "aprov":       False
+        }
+        all_projects.append(new_proj)
+        save_projects(all_projects)
 
         return redirect(url_for("project_detail", project_id=new_id))
 
     return render_template("create.html", edit_mode=False)
 
-
-# ─── Edita projeto ─────────────────────────────────────────────────────────
 @app.route("/edit/<int:project_id>", methods=["GET", "POST"])
 def edit_project(project_id):
-    proj = next((p for p in projects if p["id"] == project_id), None)
+    proj = next((p for p in all_projects if p["id"] == project_id), None)
     if not proj:
         abort(404)
 
     if request.method == "POST":
-        title       = request.form.get("title", "").strip()
-        discipline  = request.form.get("discipline", "").strip()
-        unit        = request.form.get("unit", "").strip()
-        # captura múltiplas habilidades
-        abilities   = request.form.getlist("abilities")
-        content     = request.form.get("content", "").strip()
+        title      = request.form.get("title", "").strip()
+        discipline = request.form.get("discipline", "").strip()
+        unit       = request.form.get("unit", "").strip()
+        abilities  = request.form.getlist("abilities")
+        content    = request.form.get("content", "").strip()
 
         if not all([title, discipline, unit, content]) or not abilities:
             abort(400, "Campos obrigatórios faltando.")
@@ -115,25 +132,62 @@ def edit_project(project_id):
             proj["image"] = f"images/{fn}"
 
         proj.update({
-            "name": title,
-            "discipline": discipline,
-            "unit": unit,
-            # substitui a lista de habilidades
-            "abilities": abilities,
-            "description": content
+            "name":        title,
+            "discipline":  discipline,
+            "unit":        unit,
+            "abilities":   abilities,
+            "description": content,
+            "aprov":       False          # volta para pendente
         })
 
-        with open(JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump(projects, f, indent=2, ensure_ascii=False)
-
+        save_projects(all_projects)
         return redirect(url_for("project_detail", project_id=project_id))
 
     return render_template("create.html", project=proj, edit_mode=True)
 
+# ─── Área administrativa de pendências ────────────────────────────────────
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>Login Admin</title></head>
+<body style="font-family:sans-serif; text-align:center; margin-top:10vh;">
+  <h2>Área Restrita</h2>
+  <form method="post">
+    <input type="password" name="password" placeholder="Senha de admin" autofocus required style="font-size:1.2rem;padding:.5rem;">
+    <br><br>
+    <button type="submit" style="font-size:1.1rem;padding:.5rem 1rem;">Entrar</button>
+  </form>
+  {% if error %}<p style="color:#c00;">{{ error }}</p>{% endif %}
+</body>
+</html>
+"""
 
-# ─── Rotas de JSON/HTML de habilidades (lazy-load) ─────────────────────────
-HAB_PATH = os.path.join(BASE_DIR, "habilidades.json")
+@app.route("/pending", methods=["GET", "POST"])
+def pending_projects():
+    if request.method == "POST":
+        if request.form.get("password") == ADMIN_PASSWORD:
+            session["is_admin"] = True
+            return redirect(url_for("pending_projects"))
+        return render_template_string(LOGIN_HTML, error="Senha incorreta.")
 
+    if not session.get("is_admin"):
+        return render_template_string(LOGIN_HTML, error=None)
+
+    pendentes = [p for p in all_projects if not p.get("aprov")]
+    return render_template("pending.html", projects=pendentes)
+
+@app.route("/approve/<int:project_id>", methods=["POST"], endpoint="approve_project")
+def approve_project(project_id):
+    if not session.get("is_admin"):
+        abort(401)
+    proj = next((p for p in all_projects if p["id"] == project_id), None)
+    if not proj:
+        abort(404)
+    proj["aprov"] = True
+    save_projects(all_projects)
+    return "", 204
+
+# ─── Rotas de dados auxiliares (lazy‑load) ────────────────────────────────
 @app.route("/habilidades.json")
 def habilidades_json():
     start_pipeline()
@@ -149,7 +203,6 @@ def habilidades_view():
         hab = json.load(f)
     return render_template("habilidades.html", hab=hab)
 
-# ─── Rotas de pilares e microbit (lazy-load) ───────────────────────────────
 @app.route("/pilares")
 def pilares_view():
     path = os.path.join(BASE_DIR, "pilares.json")
@@ -164,5 +217,6 @@ def microbit_view():
         m = json.load(f)
     return render_template("microbit.html", micro=m)
 
+# ─── Execução ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(debug=True)
