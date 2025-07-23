@@ -189,6 +189,16 @@
             box-shadow: 0 2px 12px #0001;
             align-self: center;
         }
+        .btn.reject {
+    background: #fff0f0;
+    color: #c0392b;
+    border: 1px solid #fad3d3;
+}
+.btn.reject:hover {
+    background: #e57373;
+    color: #fff;
+}
+
     </style>
 </head>
 
@@ -200,6 +210,7 @@
             <li class="card" data-id="{{ p.id }}">
                 <span class="title">{{ p.name }}</span>
                 <div>
+                    <button class="btn reject" data-id="{{ p.id }}">Rejeitar</button>
                     <button class="btn details" data-id="{{ p.id }}">Detalhes</button>
                     <button class="btn approve" data-id="{{ p.id }}">Aprovar</button>
                 </div>
@@ -222,6 +233,7 @@
             <button class="close" aria-label="Fechar">&times;</button>
             <div id="modal-body"></div>
             <div class="actions">
+                <button id="modal-reject" class="btn reject">Rejeitar</button>
                 <button id="modal-approve" class="btn approve">Aprovar</button>
                 <button id="modal-close" class="btn">Fechar</button>
             </div>
@@ -287,6 +299,38 @@
             btn.addEventListener('click', () => approve(btn.dataset.id, btn));
         });
         modalApprove.addEventListener('click', () => approve(currentId, modalApprove));
+        async function reject(id, btn) {
+    btn.disabled = true;
+    try {
+        let res = await fetch(
+            `{{ url_for('reject_project', project_id=0) }}`.replace('0', id),
+            { method: 'POST' }
+        );
+        if (res.status === 401) {
+            alert("Sessão expirada. Faça login novamente.");
+            btn.disabled = false;
+            return;
+        }
+        if (res.ok) {
+            const li = document.querySelector(`.card[data-id='${id}']`);
+            li && li.remove();
+            if (!overlay.hidden) closeModal();
+        } else {
+            console.error('Erro ao rejeitar', res.status);
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error(e);
+        btn.disabled = false;
+    }
+}
+// Botões da lista
+document.querySelectorAll('.reject').forEach(btn => {
+    btn.addEventListener('click', () => reject(btn.dataset.id, btn));
+});
+// Botão do modal
+document.getElementById('modal-reject').addEventListener('click', () => reject(currentId, document.getElementById('modal-reject')));
+
     </script>
 </body>
 

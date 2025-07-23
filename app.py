@@ -227,6 +227,21 @@ def approve_project(project_id):
     save_projects(all_projects)
     return "", 204
 
+@app.route("/reject/<int:project_id>", methods=["POST"], endpoint="reject_project")
+def reject_project(project_id):
+    """Rejeita (remove) uma proposta de projeto pendente."""
+    if not session.get("is_admin"):
+        abort(401)
+
+    global all_projects
+    before = len(all_projects)
+    all_projects = [p for p in all_projects if p["id"] != project_id]
+    if len(all_projects) < before:
+        save_projects(all_projects)
+        return "", 204  # sucesso, sem conteúdo
+    else:
+        abort(404)
+
 
 # ─── Dados auxiliares (lazy‑load) ─────────────────────────────────────────
 @app.route("/habilidades.json")
