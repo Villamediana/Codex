@@ -37,11 +37,14 @@ def load_projects() -> list[dict]:
 
     dirty = False
     for p in data:
-        if "aprov" not in p:
+        if "aprov" not in p:      # aprovado?
             p["aprov"] = False
             dirty = True
-        if "prev_id" not in p:
+        if "prev_id" not in p:    # versão anterior
             p["prev_id"] = None
+            dirty = True
+        if "archived" not in p:   # arquivado?
+            p["archived"] = False
             dirty = True
     if dirty:
         save_projects(data)
@@ -54,7 +57,7 @@ def save_projects(data: list[dict]) -> None:
 
 
 def approved_only(data: list[dict]) -> list[dict]:
-    return [p for p in data if p.get("aprov")]
+    return [p for p in data if p.get("aprov") and not p.get("archived")]
 
 
 # carrega em memória na partida
@@ -116,7 +119,8 @@ def create():
             "abilities":   abilities,
             "description": content,
             "image":       img,
-            "aprov":       False
+            "aprov":       False,
+            "archived":    False
         }
         all_projects.append(new_proj)
         save_projects(all_projects)
@@ -162,7 +166,8 @@ def edit_project(project_id):
             "abilities":   abilities,
             "description": content,
             "image":       img,
-            "aprov":       False          # precisa de aprovação
+            "aprov":       False,         # precisa de aprovação
+            "archived":    False
         }
         all_projects.append(new_proj)
         save_projects(all_projects)
@@ -200,13 +205,13 @@ def pending_projects():
     if not session.get("is_admin"):
         return render_template_string(LOGIN_HTML, error=None)
 
-    pendentes = [p for p in all_projects if not p.get("aprov")]
+    pendentes = [p for p in all_projects if not p.get("aprov") and not p.get("archived")]
     return render_template("pending.html", projects=pendentes)
 
 
 @app.route("/approve/<int:project_id>", methods=["POST"], endpoint="approve_project")
 def approve_project(project_id):
-    """Aprova nova versão e desativa antiga, se houver."""
+    """Aprova nova versão e arquiva antiga, se houver."""
     if not session.get("is_admin"):
         abort(401)
 
@@ -214,22 +219,23 @@ def approve_project(project_id):
     if not proj:
         abort(404)
 
-    # aprova novo
     proj["aprov"] = True
 
-    # se for revisão, desativa versão anterior aprovada
+    # se for revisão, arquiva versão anterior aprovada
     prev_id = proj.get("prev_id")
     if prev_id is not None:
         old = next((p for p in all_projects if p["id"] == prev_id), None)
         if old:
             old["aprov"] = False
+            old["archived"] = True     # impede que volte para pendentes
 
     save_projects(all_projects)
     return "", 204
 
+
 @app.route("/reject/<int:project_id>", methods=["POST"], endpoint="reject_project")
 def reject_project(project_id):
-    """Rejeita (remove) uma proposta de projeto pendente."""
+    """Remove proposta pendente."""
     if not session.get("is_admin"):
         abort(401)
 
@@ -238,9 +244,8 @@ def reject_project(project_id):
     all_projects = [p for p in all_projects if p["id"] != project_id]
     if len(all_projects) < before:
         save_projects(all_projects)
-        return "", 204  # sucesso, sem conteúdo
-    else:
-        abort(404)
+        return "", 204
+    abort(404)
 
 
 # ─── Dados auxiliares (lazy‑load) ─────────────────────────────────────────
