@@ -37,11 +37,15 @@ def load_projects() -> list[dict]:
 
     dirty = False
     for p in data:
-        if "aprov"  not in p: p["aprov"]  = True;  dirty = True
-        if "prev_id" not in p: p["prev_id"] = None; dirty = True
-        if "archived" not in p: p["archived"] = False; dirty = True
-        if "action"  not in p: p["action"]  = "create"; dirty = True
-        if "reason"  not in p: p["reason"]  = ""; dirty = True
+        if "aprov" not in p:      # aprovado?
+            p["aprov"] = False
+            dirty = True
+        if "prev_id" not in p:    # versão anterior
+            p["prev_id"] = None
+            dirty = True
+        if "archived" not in p:   # arquivado?
+            p["archived"] = False
+            dirty = True
     if dirty:
         save_projects(data)
     return data
@@ -53,11 +57,7 @@ def save_projects(data: list[dict]) -> None:
 
 
 def approved_only(data: list[dict]) -> list[dict]:
-    """Somente itens aprovados e não deletados."""
-    return [
-        p for p in data
-        if p.get("aprov") and not p.get("archived") and p.get("action") != "delete"
-    ]
+    return [p for p in data if p.get("aprov") and not p.get("archived")]
 
 
 # carrega em memória na partida
@@ -75,12 +75,19 @@ def index():
 @app.route("/projects/<int:project_id>")
 def project_detail(project_id):
     proj = next((p for p in all_projects if p["id"] == project_id), None)
-    if not proj or proj.get("archived"):
+    if not proj:
         abort(404)
     return render_template("projects.html", project=proj)
 
 
-# ─── Criação ──────────────────────────────────────────────────────────────
+@app.route("/delete/<int:project_id>", methods=["POST"])
+def delete_project(project_id):
+    global all_projects
+    all_projects = [p for p in all_projects if p["id"] != project_id]
+    save_projects(all_projects)
+    return redirect(url_for("index"))
+
+
 @app.route("/create", methods=["GET", "POST"])
 def create():
     if request.method == "POST":
@@ -89,9 +96,8 @@ def create():
         unit       = request.form.get("unit", "").strip()
         abilities  = request.form.getlist("abilities")
         content    = request.form.get("content", "").strip()
-        reason     = request.form.get("reason", "").strip()
 
-        if not all([title, discipline, unit, content, reason]) or not abilities:
+        if not all([title, discipline, unit, content]) or not abilities:
             abort(400, "Campos obrigatórios faltando.")
 
         new_id = max((p["id"] for p in all_projects), default=0) + 1
@@ -104,9 +110,9 @@ def create():
         else:
             img = "images/placeholder.jpg"
 
-        all_projects.append({
+        new_proj = {
             "id":          new_id,
-            "prev_id":     None,
+            "prev_id":     None,          # projeto original
             "name":        title,
             "discipline":  discipline,
             "unit":        unit,
@@ -114,20 +120,19 @@ def create():
             "description": content,
             "image":       img,
             "aprov":       False,
-            "archived":    False,
-            "action":      "create",
-            "reason":      reason
-        })
+            "archived":    False
+        }
+        all_projects.append(new_proj)
         save_projects(all_projects)
+
         return redirect(url_for("project_detail", project_id=new_id))
 
     return render_template("create.html", edit_mode=False)
 
 
-# ─── Edição ───────────────────────────────────────────────────────────────
 @app.route("/edit/<int:project_id>", methods=["GET", "POST"])
 def edit_project(project_id):
-    orig = next((p for p in all_projects if p["id"] == project_id and not p.get("archived")), None)
+    orig = next((p for p in all_projects if p["id"] == project_id), None)
     if not orig:
         abort(404)
 
@@ -137,11 +142,11 @@ def edit_project(project_id):
         unit       = request.form.get("unit", "").strip()
         abilities  = request.form.getlist("abilities")
         content    = request.form.get("content", "").strip()
-        reason     = request.form.get("reason", "").strip()
 
-        if not all([title, discipline, unit, content, reason]) or not abilities:
+        if not all([title, discipline, unit, content]) or not abilities:
             abort(400, "Campos obrigatórios faltando.")
 
+        # cria nova versão pendente sem alterar a aprovada
         new_id = max((p["id"] for p in all_projects), default=0) + 1
         file   = request.files.get("cover_image")
 
@@ -152,54 +157,23 @@ def edit_project(project_id):
         else:
             img = orig["image"]
 
-        all_projects.append({
+        new_proj = {
             "id":          new_id,
-            "prev_id":     project_id,
+            "prev_id":     project_id,    # aponta para versão anterior
             "name":        title,
             "discipline":  discipline,
             "unit":        unit,
             "abilities":   abilities,
             "description": content,
             "image":       img,
-            "aprov":       False,
-            "archived":    False,
-            "action":      "edit",
-            "reason":      reason
-        })
+            "aprov":       False,         # precisa de aprovação
+            "archived":    False
+        }
+        all_projects.append(new_proj)
         save_projects(all_projects)
         return redirect(url_for("project_detail", project_id=new_id))
 
     return render_template("create.html", project=orig, edit_mode=True)
-
-
-# ─── Solicitação de exclusão ──────────────────────────────────────────────
-@app.route("/request-delete/<int:project_id>", methods=["POST"])
-def request_delete(project_id):
-    orig = next((p for p in all_projects if p["id"] == project_id and not p.get("archived")), None)
-    if not orig:
-        abort(404)
-
-    reason = request.form.get("reason", "").strip()
-    if not reason:
-        abort(400, "Justificativa obrigatória.")
-
-    new_id = max((p["id"] for p in all_projects), default=0) + 1
-    all_projects.append({
-        "id":          new_id,
-        "prev_id":     project_id,
-        "name":        orig["name"],
-        "discipline":  orig["discipline"],
-        "unit":        orig["unit"],
-        "abilities":   orig["abilities"],
-        "description": orig["description"],
-        "image":       orig["image"],
-        "aprov":       False,
-        "archived":    False,
-        "action":      "delete",
-        "reason":      reason
-    })
-    save_projects(all_projects)
-    return redirect(url_for("project_detail", project_id=project_id))
 
 
 # ─── Área administrativa ──────────────────────────────────────────────────
@@ -232,15 +206,12 @@ def pending_projects():
         return render_template_string(LOGIN_HTML, error=None)
 
     pendentes = [p for p in all_projects if not p.get("aprov") and not p.get("archived")]
-    pendentes.sort(key=lambda x: x["id"], reverse=True)
     return render_template("pending.html", projects=pendentes)
 
 
-# ─── Aprovar / Rejeitar ───────────────────────────────────────────────────
 @app.route("/approve/<int:project_id>", methods=["POST"], endpoint="approve_project")
 def approve_project(project_id):
-    global all_projects            # ➊ declare aqui, antes de qualquer uso
-
+    """Aprova nova versão e arquiva antiga, se houver."""
     if not session.get("is_admin"):
         abort(401)
 
@@ -248,35 +219,23 @@ def approve_project(project_id):
     if not proj:
         abort(404)
 
-    action  = proj["action"]
-    prev_id = proj["prev_id"]
+    proj["aprov"] = True
 
-    if action == "create":
-        proj["aprov"] = True
-
-    elif action == "edit":
-        proj["aprov"] = True
+    # se for revisão, arquiva versão anterior aprovada
+    prev_id = proj.get("prev_id")
+    if prev_id is not None:
         old = next((p for p in all_projects if p["id"] == prev_id), None)
         if old:
             old["aprov"] = False
-            old["archived"] = True
-
-    elif action == "delete":
-        all_projects = [p for p in all_projects if p["id"] != prev_id]
-        proj["aprov"] = True
-        proj["archived"] = True
-
-    else:
-        abort(400, "Ação desconhecida.")
+            old["archived"] = True     # impede que volte para pendentes
 
     save_projects(all_projects)
     return "", 204
 
 
-
 @app.route("/reject/<int:project_id>", methods=["POST"], endpoint="reject_project")
 def reject_project(project_id):
-    """Rejeita solicitação pendente."""
+    """Remove proposta pendente."""
     if not session.get("is_admin"):
         abort(401)
 
