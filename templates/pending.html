@@ -2,336 +2,213 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Projetos Pendentes</title>
-    <style>
-        :root {
-            --accent: #27ae60;
-            --border: #e1e4e8;
-            --bg: #f9f9f9;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projetos Pendentes</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
+  <style>
+    :root {
+      --accent: #27ae60;
+      --danger: #c0392b;
+      --border: #e1e4e8;
+      --bg: #f9f9f9;
+    }
 
-        body {
-            font-family: system-ui, sans-serif;
-            background: var(--bg);
-            color: #333;
-            padding: 2rem;
-        }
+    /* RESET -------------------------------------------------------------- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto
-        }
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: #333;
+      padding: 2rem;
+    }
 
-        h1 {
-            text-align: center;
-            font-weight: 400;
-            margin-bottom: 2rem
-        }
+    /* LAYOUT ------------------------------------------------------------- */
+    .container { max-width: 640px; margin: 0 auto; }
+    h1         { text-align: center; font-weight: 400; margin-bottom: 2rem; }
+    ul         { list-style: none; padding: 0; }
 
-        ul {
-            list-style: none;
-            padding: 0
-        }
+    /* CARD --------------------------------------------------------------- */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1rem .75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .75rem;
+      transition: box-shadow .2s;
+    }
+    .card:hover { box-shadow: 0 2px 8px #0002; }
 
-        .card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: .5rem;
-            transition: box-shadow .2s;
-        }
+    .title  { font-size: 1rem; flex: 1; }
+    .badge  {
+      background: var(--border);
+      font-size: .7rem;
+      text-transform: uppercase;
+      padding: .2rem .45rem;
+      border-radius: 4px;
+      margin-left: .4rem;
+    }
 
-        .card:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, .08)
-        }
+    /* BOTÕES ------------------------------------------------------------- */
+    .btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: .35rem .8rem;
+      font-size: .9rem;
+      border-radius: 4px;
+      transition: background .2s;
+    }
+    .btn:hover         { background: #f0f0f0; }
+    .btn.approve       { background: var(--accent); color: #fff; }
+    .btn.approve:hover { background: #239a57; }
+    .btn.reject        { background: #fff0f0; color: var(--danger); border: 1px solid #fad3d3; }
+    .btn.reject:hover  { background: #e57373; color: #fff; }
+    .btn:disabled      { opacity: .6; cursor: default; }
 
-        .title {
-            font-size: 1rem;
-            flex: 1
-        }
+    /* MODAL -------------------------------------------------------------- */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+    }
+    .modal-overlay[hidden] { display: none !important; }
 
-        .btn {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: .4rem .8rem;
-            font-size: .9rem;
-            border-radius: 4px;
-            transition: background .2s;
-        }
+    .modal {
+      background: #fff;
+      border-radius: 8px;
+      max-width: 420px; width: 90%;
+      padding: 1.5rem; position: relative;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .modal img { max-width: 100%; border-radius: 6px; margin-top: .8rem; }
+    .modal .close {
+      position: absolute; top: .5rem; right: .5rem;
+      border: none; background: transparent;
+      font-size: 1.6rem; cursor: pointer;
+    }
+    .actions {
+      display: flex; justify-content: flex-end;
+      gap: .5rem; margin-top: 1.2rem;
+    }
+    #modal-body h2 { margin-bottom: .4rem; }
 
-        .btn:hover {
-            background: #f0f0f0
-        }
-
-        .btn.approve {
-            background: var(--accent);
-            color: #fff
-        }
-
-        .btn.approve:hover {
-            background: #239a57
-        }
-
-        .btn.approve:disabled {
-            opacity: .6;
-            cursor: default
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(2px);
-            z-index: 1000;
-        }
-
-        .modal {
-            background: #fff;
-            border-radius: 8px;
-            max-width: 420px;
-            width: 90%;
-            padding: 1.5rem;
-            position: relative
-        }
-
-        .modal img {
-            max-width: 100%;
-            border-radius: 6px;
-            margin-top: 1rem
-        }
-
-        .modal .close {
-            position: absolute;
-            top: .5rem;
-            right: .5rem;
-            border: none;
-            background: transparent;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .modal .actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: .5rem;
-            margin-top: 1.2rem
-        }
-
-        .modal-overlay[hidden] {
-            display: none !important;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(2px);
-            z-index: 1000;
-        }
-
-        /* Garante que modal nunca “escorre” e tem scroll interno */
-        .modal {
-            background: #fff;
-            border-radius: 8px;
-            max-width: 420px;
-            width: 90%;
-            padding: 1.5rem;
-            position: relative;
-            max-height: 80vh;
-            /* ADICIONE: limite vertical */
-            overflow-y: auto;
-            /* ADICIONE: scroll vertical interno */
-            box-sizing: border-box;
-        }
-
-        #modal-body {
-            display: flex;
-            flex-direction: column;
-            gap: .8rem;
-        }
-
-        /* Deixa texto mais legível */
-        #modal-body h2 {
-            margin: 0 0 .5rem 0;
-            font-size: 1.2rem;
-        }
-
-        #modal-body p {
-            margin: .2rem 0;
-            font-size: 1.03rem;
-            line-height: 1.5;
-        }
-
-        #modal-body img {
-            margin-top: .6rem;
-            max-width: 100%;
-            border-radius: 6px;
-            box-shadow: 0 2px 12px #0001;
-            align-self: center;
-        }
-        .btn.reject {
-    background: #fff0f0;
-    color: #c0392b;
-    border: 1px solid #fad3d3;
-}
-.btn.reject:hover {
-    background: #e57373;
-    color: #fff;
-}
-
-    </style>
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Projetos Pendentes</h1>
-        <ul id="list">
-            {% for p in projects %}
-            <li class="card" data-id="{{ p.id }}">
-                <span class="title">{{ p.name }}</span>
-                <div>
-                    <button class="btn reject" data-id="{{ p.id }}">Rejeitar</button>
-                    <button class="btn details" data-id="{{ p.id }}">Detalhes</button>
-                    <button class="btn approve" data-id="{{ p.id }}">Aprovar</button>
-                </div>
-                <template id="tmpl-{{ p.id }}">
-                    <h2>{{ p.name }}</h2>
-                    <p><strong>Disciplina:</strong> {{ p.discipline }}</p>
-                    <p><strong>Unidade:</strong> {{ p.unit }}</p>
-                    <p><strong>Habilidades:</strong> {{ p.abilities|join(", ") }}</p>
-                    <div class="modal-description">{{ p.description|safe }}</div>
-                    <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }}">
-                </template>
+  <div class="container">
+    <h1>Projetos Pendentes</h1>
 
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+    <ul id="list">
+      {% for p in projects %}
+      <li class="card" data-id="{{ p.id }}">
+        <span class="title">
+          {{ p.name }}
+          <span class="badge">{{ p.action }}</span>
+        </span>
 
-    <div id="overlay" class="modal-overlay" hidden>
-        <div class="modal">
-            <button class="close" aria-label="Fechar">&times;</button>
-            <div id="modal-body"></div>
-            <div class="actions">
-                <button id="modal-reject" class="btn reject">Rejeitar</button>
-                <button id="modal-approve" class="btn approve">Aprovar</button>
-                <button id="modal-close" class="btn">Fechar</button>
-            </div>
+        <div>
+          <button class="btn reject"  data-id="{{ p.id }}">Rejeitar</button>
+          <button class="btn details" data-id="{{ p.id }}">Detalhes</button>
+          <button class="btn approve" data-id="{{ p.id }}">Aprovar</button>
         </div>
+
+        <!-- Conteúdo escondido para o modal -->
+        <template id="tmpl-{{ p.id }}">
+          <h2>{{ p.name }}</h2>
+          <p><strong>Ação:</strong> {{ p.action|title }}</p>
+          <p><strong>Justificativa:</strong> {{ p.reason }}</p>
+          <hr>
+          <p><strong>Disciplina:</strong> {{ p.discipline }}</p>
+          <p><strong>Unidade:</strong> {{ p.unit }}</p>
+          <p><strong>Habilidades:</strong> {{ p.abilities|join(", ") }}</p>
+          <div class="modal-description">{{ p.description|safe }}</div>
+          <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }}">
+        </template>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- MODAL -------------------------------------------------------------- -->
+  <div id="overlay" class="modal-overlay" hidden>
+    <div class="modal">
+      <button class="close" aria-label="Fechar">&times;</button>
+      <div id="modal-body"></div>
+
+      <div class="actions">
+        <button id="modal-reject"  class="btn reject">Rejeitar</button>
+        <button id="modal-approve" class="btn approve">Aprovar</button>
+        <button id="modal-close"  class="btn">Fechar</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const overlay = document.getElementById('overlay');
-        const modalBody = document.getElementById('modal-body');
-        const modalApprove = document.getElementById('modal-approve');
-        let currentId = null;
+  <script>
+    const overlay      = document.getElementById('overlay');
+    const modalBody    = document.getElementById('modal-body');
+    const modalApprove = document.getElementById('modal-approve');
+    const modalReject  = document.getElementById('modal-reject');
+    let   currentId    = null;
 
-        function closeModal() {
-            overlay.hidden = true;
-            modalBody.innerHTML = '';
-            currentId = null;
-        }
-        document.querySelector('.close').onclick = closeModal;
-        document.getElementById('modal-close').onclick = closeModal;
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) closeModal();
-        });
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && !overlay.hidden) closeModal();
-        });
-
-        document.querySelectorAll('.details').forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentId = btn.dataset.id;
-                const tpl = document.getElementById('tmpl-' + currentId);
-                modalBody.innerHTML = tpl.innerHTML;
-                overlay.hidden = false;
-            });
-        });
-
-        async function approve(id, btn) {
-            btn.disabled = true;
-            try {
-                let res = await fetch(
-                    `{{ url_for('approve_project', project_id=0) }}`.replace('0', id),
-                    { method: 'POST' }
-                );
-                if (res.status === 401) {
-                    alert("Sessão expirada. Faça login novamente.");
-                    btn.disabled = false;
-                    return;
-                }
-                if (res.ok) {
-                    const li = document.querySelector(`.card[data-id='${id}']`);
-                    li && li.remove();
-                    if (!overlay.hidden) closeModal();
-                } else {
-                    console.error('Erro ao aprovar', res.status);
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                console.error(e);
-                btn.disabled = false;
-            }
-        }
-
-        document.querySelectorAll('.approve').forEach(btn => {
-            btn.addEventListener('click', () => approve(btn.dataset.id, btn));
-        });
-        modalApprove.addEventListener('click', () => approve(currentId, modalApprove));
-        async function reject(id, btn) {
-    btn.disabled = true;
-    try {
-        let res = await fetch(
-            `{{ url_for('reject_project', project_id=0) }}`.replace('0', id),
-            { method: 'POST' }
-        );
-        if (res.status === 401) {
-            alert("Sessão expirada. Faça login novamente.");
-            btn.disabled = false;
-            return;
-        }
-        if (res.ok) {
-            const li = document.querySelector(`.card[data-id='${id}']`);
-            li && li.remove();
-            if (!overlay.hidden) closeModal();
-        } else {
-            console.error('Erro ao rejeitar', res.status);
-            btn.disabled = false;
-        }
-    } catch (e) {
-        console.error(e);
-        btn.disabled = false;
+    /* ---------- Modal helpers ------------------ */
+    function closeModal() {
+      overlay.hidden = true;
+      modalBody.innerHTML = '';
+      currentId = null;
     }
-}
-// Botões da lista
-document.querySelectorAll('.reject').forEach(btn => {
-    btn.addEventListener('click', () => reject(btn.dataset.id, btn));
-});
-// Botão do modal
-document.getElementById('modal-reject').addEventListener('click', () => reject(currentId, document.getElementById('modal-reject')));
+    document.querySelector('.close').onclick  = closeModal;
+    document.getElementById('modal-close').onclick = closeModal;
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) closeModal(); });
 
-    </script>
+    /* ---------- Abrir detalhes ----------------- */
+    document.querySelectorAll('.details').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentId = btn.dataset.id;
+        const tpl = document.getElementById('tmpl-' + currentId);
+        modalBody.innerHTML = tpl.innerHTML;
+        overlay.hidden = false;
+      });
+    });
+
+    /* ---------- Aprovar / Rejeitar ------------- */
+    async function send(path, id, btn) {
+      btn.disabled = true;
+      try {
+        const res = await fetch(path.replace('0', id), { method: 'POST' });
+        if (res.status === 401) { alert('Sessão expirada.'); btn.disabled = false; return; }
+        if (res.ok) {
+          document.querySelector(`.card[data-id='${id}']`)?.remove();
+          if (!overlay.hidden) closeModal();
+        } else { console.error('Erro', res.status); btn.disabled = false; }
+      } catch (e) { console.error(e); btn.disabled = false; }
+    }
+
+    /* botões inline */
+    document.querySelectorAll('.approve').forEach(btn => {
+      btn.addEventListener('click', () =>
+        send(`{{ url_for('approve_project', project_id=0) }}`, btn.dataset.id, btn));
+    });
+    document.querySelectorAll('.reject').forEach(btn => {
+      btn.addEventListener('click', () =>
+        send(`{{ url_for('reject_project',  project_id=0) }}`, btn.dataset.id, btn));
+    });
+
+    /* botões modal */
+    modalApprove.onclick = () => send(`{{ url_for('approve_project', project_id=0) }}`, currentId, modalApprove);
+    modalReject .onclick = () => send(`{{ url_for('reject_project',  project_id=0) }}`, currentId, modalReject);
+  </script>
 </body>
 
 </html>
