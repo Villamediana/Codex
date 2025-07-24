@@ -11,6 +11,270 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
 
+  <style>
+    /* ---------- Variáveis ---------- */
+    :root {
+      --accent: #27ae60;
+      --gray: #2c3e50;
+      --border: #e1e4e8;
+      --bg: #f7f9fb;
+      --transition: .25s;
+    }
+
+    /* ---------- Reset ---------- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ---------- Layout ---------- */
+    body {
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+    }
+
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #fff;
+      overflow-y: auto;
+      transition: transform var(--transition);
+      z-index: 1100;
+      position: relative;
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ---------- Navegação superior ---------- */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .75rem 1.25rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .top-nav .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .top-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      font-weight: 500;
+      opacity: .85;
+    }
+
+    .top-nav a.active {
+      border-bottom: 2px solid var(--accent);
+      opacity: 1;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+      padding: .45rem .9rem;
+      border-radius: 6px;
+      font-size: .9rem;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-accent:hover {
+      filter: brightness(.95);
+    }
+
+    /* ---------- Conteúdo ---------- */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1.25rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+      transform: translateY(-4px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      color: var(--gray);
+      margin-bottom: .25rem;
+    }
+
+    .discipline-label {
+      font-size: .85rem;
+      color: #555;
+    }
+
+    /* ---------- Botões ação ---------- */
+    .edit-btn,
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+    }
+
+    .edit-btn {
+      right: 44px;
+    }
+
+    .delete-btn {
+      right: 10px;
+      font-size: 18px;
+      line-height: 1;
+      color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background: #fef0ef;
+    }
+
+    /* ---------- Sidebar mobile & backdrop ---------- */
+    .menu-toggle,
+    .close-btn {
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      color: var(--gray);
+      cursor: pointer;
+    }
+
+    .menu-toggle {
+      display: none;
+    }
+
+    .close-btn {
+      display: none;
+      position: absolute;
+      top: .7rem;
+      right: 1rem;
+    }
+
+    .mobile-nav {
+      display: none;
+      flex-direction: column;
+      gap: .75rem;
+      padding: 0 1.25rem 1.5rem;
+    }
+
+    .mobile-nav a {
+      color: var(--gray);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .3);
+      z-index: 1000;
+    }
+
+    /* ---------- Breakpoints ---------- */
+    @media (min-width:768px) {
+      .card-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width:768px) {
+      body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 80%;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 6px rgba(0, 0, 0, .2);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .top-nav {
+        border-bottom: none;
+        padding: .6rem 1rem;
+      }
+
+      .top-nav .nav-links,
+      .top-nav .btn-formulario {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .close-btn {
+        display: block;
+      }
+
+      .mobile-nav {
+        display: flex;
+      }
+    }
+    /* garante que os botões fiquem acima do link esticado */
+.edit-btn,
+.delete-btn {
+  z-index: 5;        /* qualquer valor > 1 resolve */
+}
+
+  </style>
 </head>
 
 <body>
