@@ -6,11 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Projetos</title>
 
-  <!-- Limpa caches do navegador -->
-  <!-- Assets externos -->
+  <!-- CSS principal -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
-
   <style>
     /* ---------- Variáveis ---------- */
     :root {
@@ -275,6 +273,7 @@
 }
 
   </style>
+
 </head>
 
 <body>
@@ -340,10 +339,8 @@
       <div id="cards-container" class="card-grid">
         {% for p in projects %}
         <div class="card" data-discipline="{{ p.discipline }}" data-name="{{ p.name | lower }}">
-          <form method="POST" action="{{ url_for('delete_project', project_id=p.id) }}"
-            onsubmit="return confirm('Deseja excluir o projeto {{ p.name }}?');">
-            <button type="submit" class="delete-btn" title="Excluir">×</button>
-          </form>
+          <button type="button" class="delete-btn" title="Excluir"
+                  onclick="solicitarExclusao({{ p.id }}, '{{ p.name | replace(\"'\", \"\\'\") }}')">×</button>
 
           <a href="{{ url_for('edit_project', project_id=p.id) }}" class="edit-btn" title="Editar">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -370,16 +367,37 @@
   <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
+    const notyf = new Notyf({ duration: 4000 });
+
     function toggleSidebar() {
       const sb = document.getElementById('sidebar');
       const bd = document.getElementById('backdrop');
       sb.classList.toggle('open');
       bd.style.display = sb.classList.contains('open') ? 'block' : 'none';
     }
-  </script>
 
-  <!-- Liberação / ocultação de botões -->
-  <script>
+    // Solicitação de exclusão com justificativa
+    async function solicitarExclusao(id, nome) {
+      const motivo = prompt(`Digite a justificativa para excluir o projeto "${nome}":`);
+      if (!motivo) return;
+
+      try {
+        const res = await fetch(`/request-delete/${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ reason: motivo })
+        });
+        if (res.ok) {
+          notyf.success('Pedido de exclusão enviado para aprovação.');
+        } else {
+          notyf.error('Falha ao enviar pedido de exclusão.');
+        }
+      } catch (e) {
+        notyf.error('Erro de conexão.');
+      }
+    }
+
+    /* ------- Liberação / ocultação de botões ------- */
     const btns = (sel, val) => document.querySelectorAll(sel).forEach(b => b.style.display = val);
     const TTL = 24 * 60 * 60 * 1000;
 
