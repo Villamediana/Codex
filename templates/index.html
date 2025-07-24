@@ -123,8 +123,8 @@
       const ts = localStorage.getItem('liberado_ate');
       return ts && Date.now() < +ts;
     }
-    function ocultarBotoes() { btns('.edit-btn, .delete-btn', 'none'); }
-    function mostrarBotoes() { btns('.edit-btn, .delete-btn', ''); }
+    function ocultarBotoes() { btns('.delete-btn', 'none'); }
+    function mostrarBotoes() { btns('.delete-btn', ''); }
 
     window.addEventListener('DOMContentLoaded', () => {
       liberacaoValida() ? mostrarBotoes() : ocultarBotoes();
